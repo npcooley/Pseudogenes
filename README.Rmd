@@ -1,0 +1,1469 @@
+---
+title: |
+  <center> **Plots and scripts for:** </center>
+  <center> Many purported pseudogenes in bacterial genomes are bonafide genes </center>
+author: 
+  - Nicholas P. Cooley, Department of Biomedical Informatics, University of Pittsburgh
+  - Erik S. Wright, Department of Biomedical Informatics, University of Pittsburgh
+date: "`r Sys.Date()`"
+output:
+  github_document: default
+  html_document: default
+knit: (function(inputFile, encoding) {
+                rmarkdown::render(inputFile,
+                                  encoding = encoding,
+                                  output_format = "all")
+        })
+---
+
+# Pseudogenes!
+
+This github repo contains data and scripts necessary to recreate the plots present in the manuscript in progress **Many purported pseudogenes in bacterial genomes are bonafide genes**. The data present in this repo are mostly lightweight summary tables capable of fitting within github size restrictions, while the large scale data analysis results will be deposited on zenodo.
+
+Pseudogenes can represent at least three separate phenomena in assembled genomes, 1) recent evolutionary changes that can serve as an observational marker of how pressure is affecting functions and tools within a genome, 2) an error introduced into an assembly via error modes inherent to the sequencing platform or the assembly process, or 3) an inaccurate annotation of a programmed frameshift or non-canonical amino acid inclusion in lieu of a stop codon. Without clear confirmation such as Sanger sequencing, it can be unclear which of these options any individual pseudogene actually represents. The wide variety of platform and assembler choices available to scientists additionally introduces the possibility for stochasticity in the rates at which pseudogenes are `TRUE` and `FALSE` depending on the combination of choices made in data collection and generation.
+
+It would take an enormous effort to wholesale sanger sequence every pseudogene present in RefSeq or Genbank. It is likely not even possible, nor is it clear that that type of experiment is necessary. However, some interrogations of the diverse data present in RefSeq are possible, and potentially useful. Metadata can be scraped from the SRA and we can generate direct observations of how relative counts of pseudogenes are related to extractable pieces of data, such as reported assembler, platforms for available SRA runs, submission year, reported assembly status, Contig N50 over total length, and genus. These direct observations can be coupled with causal inference via Tetrad to predict any causal links between metadata categories and relative pseudogene counts.
+
+Additionally SRA data can be reassembled under controlled conditions and pseudogene counts and homolog groups as outputs can be used to compare conditions.
+
+```{r libraries, include = TRUE, echo = FALSE}
+# Libraries
+suppressMessages(library(knitr))
+suppressMessages(library(SynExtend))
+suppressMessages(library(magick))
+suppressMessages(library(pdftools))
+suppressMessages(library(VennDiagram))
+suppressMessages(library(igraph))
+# suppressMessages(library(kableExtra))
+
+# Sasha's distinct colors, hexcodes,
+# from:
+# https://sashamaps.net/docs/resources/20-colors/
+ColVec1 <- c('#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#42d4f4', '#f032e6', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3', '#000075', '#a9a9a9', '#ffffff', '#000000')
+ColVec2 <- paste0(ColVec1,
+                  "33")
+ColVec3 <- paste0(ColVec1,
+                  "15")
+```
+
+```{r options, include = TRUE, echo = FALSE}
+# chunk options
+opts_chunk$set(eval = TRUE,
+               comment = "#",
+               fig.align = "center",
+               # out.width = "100%",
+               dev = c("png", "pdf"))
+```
+
+```{r adhoc functions, include = TRUE, echo = FALSE}
+# adhoc VennDiagram function:
+# hack apart and rebuild the venn diagram functions to not use grobs
+# and GG plot
+AdHocVenn <- function(InputList,
+                      sigdigs = 2L,
+                      ReturnFile = NULL,
+                      PARSET = c(4,3,2,0.75),
+                      SHADECOLS = NULL) {
+  A <- InputList[[1]]
+  B <- InputList[[2]]
+  C <- InputList[[3]]
+  D <- InputList[[4]]
+  
+  list_names <- names(InputList)
+  
+  n12 <- intersect(A, B)
+  n13 <- intersect(A, C)
+  n14 <- intersect(A, D)
+  n23 <- intersect(B, C)
+  n24 <- intersect(B, D)
+  n34 <- intersect(C, D)
+  n123 <- intersect(n12, C)
+  n124 <- intersect(n12, D)
+  n134 <- intersect(n13, D)
+  n234 <- intersect(n23, D)
+  n1234 <- intersect(n123, D)
+  
+  area1 <- length(A)
+  area2 <- length(B)
+  area3 <- length(C)
+  area4 <- length(D)
+  arean12 <- length(n12)
+  arean13 <- length(n13)
+  arean14 <- length(n14)
+  arean23 <- length(n23)
+  arean24 <- length(n24)
+  arean34 <- length(n34)
+  arean123 <- length(n123)
+  arean124 <- length(n124)
+  arean134 <- length(n134)
+  arean234 <- length(n234)
+  arean1234 <- length(n1234)
+  
+  a6  <- arean1234
+  a12 <- arean123 - a6
+  a11 <- arean124 - a6
+  a5  <- arean134 - a6
+  a7  <- arean234 - a6
+  a15 <- arean12 - a6 - a11 - a12
+  a4  <- arean13 - a6 - a5 - a12
+  a10 <- arean14 - a6 - a5 - a11
+  a13 <- arean23 - a6 - a7 - a12
+  a8  <- arean24 - a6 - a7 - a11
+  a2  <- arean34 - a6 - a5 - a7
+  a9  <- area1 - a4 - a5 - a6 - a10 - a11 - a12 - a15
+  a14 <- area2 - a6 - a7 - a8 - a11 - a12 - a13 - a15
+  a1  <- area3 - a2 - a4 - a5 - a6 - a7 - a12 - a13
+  a3  <- area4 - a2 - a5 - a6 - a7 - a8 - a10 - a11
+  
+  ellipse_positions <- matrix(nrow = 4,
+                              ncol = 7)
+  colnames(ellipse_positions) <- c('x',
+                                   'y',
+                                   'a',
+                                   'b',
+                                   'rotation',
+                                   'fill.mapping',
+                                   'line.mapping')
+  
+  ellipse_positions[1,] <- c(0.65, 0.47, 0.35, 0.20,  45, 2, 2)
+  ellipse_positions[2,] <- c(0.35, 0.47, 0.35, 0.20, 135, 1, 1)
+  ellipse_positions[3,] <- c(0.50, 0.57, 0.33, 0.15,  45, 4, 4)
+  ellipse_positions[4,] <- c(0.50, 0.57, 0.35, 0.15, 135, 3, 3)
+  
+  Poly_Set <- vector(mode = "list",
+                     length = nrow(ellipse_positions))
+  for (m1 in seq_len(nrow(ellipse_positions))) {
+    Poly_Set[[m1]] <- VennDiagram::ell2poly(x = ellipse_positions[m1, 1L],
+                                            y = ellipse_positions[m1, 2L],
+                                            a = ellipse_positions[m1, 3L],
+                                            b = ellipse_positions[m1, 4L],
+                                            rotation = ellipse_positions[m1, 5L],
+                                            n.sides = 3000L)
+  }
+  
+  # create the labels
+  label_matrix <- matrix(nrow = 15,
+                         ncol = 3)
+  colnames(label_matrix) <- c('label', 'x', 'y');
+  
+  label_matrix[1, ] <- c(a1, 0.350, 0.77)
+  label_matrix[2, ] <- c(a2, 0.500, 0.69)
+  label_matrix[3, ] <- c(a3, 0.650, 0.77)
+  label_matrix[4, ] <- c(a4, 0.310, 0.67)
+  label_matrix[5, ] <- c(a5, 0.400, 0.58)
+  label_matrix[6, ] <- c(a6, 0.500, 0.47)
+  label_matrix[7, ] <- c(a7, 0.600, 0.58)
+  label_matrix[8, ] <- c(a8, 0.690, 0.67)
+  label_matrix[9, ] <- c(a9, 0.180, 0.58)
+  label_matrix[10, ] <- c(a10, 0.320, 0.42)
+  label_matrix[11, ] <- c(a11, 0.425, 0.38)
+  label_matrix[12, ] <- c(a12, 0.575, 0.38)
+  label_matrix[13, ] <- c(a13, 0.680, 0.42)
+  label_matrix[14, ] <- c(a14, 0.820, 0.58)
+  label_matrix[15, ] <- c(a15, 0.500, 0.28)
+  
+  # processedLabels <- paste(signif(label_matrix[, 'label'] / sum(label_matrix[, 'label']) * 100,
+  #                                 digits = sigdigs),
+  #                          '%',
+  #                          sep='')
+  processedLabels <- paste0(formatC(x = label_matrix[, 'label'] / sum(label_matrix[, 'label']) * 100,
+                                    digits = sigdigs,
+                                    format = "f"),
+                            "%")
+  # print(processedLabels)
+  # print(label_matrix[, "label"])
+  
+  # find the location and plot all the category names
+  # cat_pos_x <- c(0.18, 0.82, 0.35, 0.65)
+  cat_pos_x <- c(0.12, 0.89, 0.35, 0.65)
+  # cat_pos_y <- c(0.58, 0.58, 0.77, 0.77)
+  cat_pos_y <- c(0.79, 0.79, 0.89, 0.89)
+  
+  par(mar = PARSET)
+  plot(x = 0,
+       y = 0,
+       type = "n",
+       xlim = c(0, 1),
+       ylim = c(0.1, 1),
+       main = "",
+       xlab = "",
+       ylab = "",
+       frame.plot = FALSE,
+       axes = FALSE,
+       yaxs = "i",
+       xaxs = "i")
+  # the polygons are not plotted in the direct order of the input list
+  INPUT_COLS <- c(2,1,4,3)
+  for (m1 in seq_along(Poly_Set)) {
+    if (!is.null(SHADECOLS)) {
+      polygon(x = Poly_Set[[m1]]$x,
+            y = Poly_Set[[m1]]$y,
+            col = SHADECOLS[INPUT_COLS[m1]])
+    } else {
+      polygon(x = Poly_Set[[m1]]$x,
+            y = Poly_Set[[m1]]$y)
+    }
+    
+  }
+  
+  for (m1 in seq_along(processedLabels)) {
+    text(x = label_matrix[m1, 2L],
+         y = label_matrix[m1, 3L],
+         labels = processedLabels[m1],
+         cex = 0.75)
+  }
+  
+  # these are in the wrong spots from the initial function
+  for(m1 in seq_along(list_names)) {
+    text(x = cat_pos_x[m1],
+         y = cat_pos_y[m1],
+         labels = list_names[m1],
+         cex = 0.75)
+  }
+}
+
+# Function to plot color bar
+color.bar <- function(lut,
+                      min1,
+                      max1 = -min1,
+                      min2,
+                      max2 = -min2,
+                      mina,
+                      maxa,
+                      minb,
+                      maxb,
+                      nticks = 10,
+                      ticks1 = seq(min1,
+                                   max1,
+                                   len = nticks),
+                      ticks2 = seq(min2,
+                                   max2,
+                                   len = nticks),
+                      ticksa = seq(mina,
+                                   maxa,
+                                   len = nticks),
+                      ticksb = seq(minb,
+                                   maxb,
+                                   len = nticks),
+                      title='') {
+  scale <- (length(lut)-1)/(max1-min1)
+  
+  # dev.new(width = 1.75,
+  #         height = 5)
+  plot(c(0,5),
+       c(min1,max1),
+       type = 'n',
+       bty = 'n',
+       xaxt = 'n',
+       xlab = '',
+       yaxt = 'n',
+       ylab = '')
+  # text(x = 2.5,
+  #      y = max1 + 1,
+  #      cex = 0.5,
+  #      labels = title)
+  mtext(text = title,
+        side = 3,
+        cex = 0.5)
+  axis(side = 2,
+       at = ticks1,
+       labels = paste0(formatC(ticks1, digits = 2),
+                       " (",
+                       formatC(ticks2, digits = 2),
+                       ")"),
+       las = 1,
+       cex = 0.5)
+  axis(side = 4,
+       at = ticks1,
+       labels = paste0(formatC(ticksa, digits = 2),
+                       " (",
+                       formatC(ticksb, digits = 2),
+                       ")"),
+       las = 1,
+       cex = 0.5)
+  for (i in 1:(length(lut)-1)) {
+    y = (i-1)/scale + min1
+    rect(0.25,
+         y,
+         4.75,
+         y+1/scale,
+         col = lut[i],
+         border = NA)
+  }
+}
+
+```
+
+### Figure 1:
+
+```{r pg-incongruency, include = TRUE, echo = FALSE}
+#| dev = c('png', 'pdf'), fig.width = 3.5, fig.height = 7, fig.align = "center",
+#| fig.cap = "Pseudogenes often show orthologous relationships with non-pseudogenes"
+load(file = "InputData/Counts_Orthos_v02.RData",
+     verbose = FALSE)
+# as calculated ANI approaches 100 (i.e. zero distance)
+# it is assumed that relative counts of pseudogenization events will converge
+
+# at least one pair -- with bad ANI -- is represented only by non-pair groups
+dat3 <- dat3[dat3$AllPairs > 0, ]
+
+layout(mat = matrix(data = c(1,1,1,1,6,
+                             2,2,2,2,3,
+                             2,2,2,2,3,
+                             2,2,2,2,3,
+                             4,4,4,4,5,
+                             4,4,4,4,5,
+                             4,4,4,4,5),
+                    nrow = 7,
+                    byrow = TRUE))
+# top histogram
+wx <- (dat3$Congruent_FS_Pairs > 0 | dat3$Incongruent_FS_Pairs > 0) &
+  (dat3$Congruent_IS_Pairs > 0 | dat3$Incongruent_IS_Pairs > 0) &
+  dat3$ANI >= 95
+# sum(wx)
+# 10362 # points shown!
+z1 <- density(dat3$ANI[wx])
+par(bg = "white",
+    mgp = c(2.5, 1.75, 0),
+    mar = c(0,3,3,1))
+brks <- seq(from = floor(min(dat3$ANI)),
+            to = 100,
+            by = 0.05)
+tophist <- hist(dat3$ANI,
+                breaks = brks,
+                plot = FALSE)
+xlim1 <- which(tophist$breaks == 95)
+xlim2 <- which(tophist$breaks == 100)
+barplot(tophist$density,
+        axes = FALSE,
+        space = 0,
+        xlim = c(xlim1, xlim2),
+        xaxs = "i",
+        xpd = FALSE)
+# plot(x = z1$x,
+#      y = z1$y,
+#      xlim = c(95, 100),
+#      ylim = c(0, 1.5),
+#      xaxs = "i",
+#      yaxs = "i",
+#      lty = 1,
+#      type = "l",
+#      xlab = "",
+#      ylab = "",
+#      axes = FALSE)
+# segments(x0 = 99.99,
+#          x1 = 99.99,
+#          y0 = 0.015,
+#          y1 = 1.29)
+# polygon(x = z1$x,
+#         y = z1$y,
+#         col = ColVec2[4L])
+
+# incongruent frameshifts
+par(bg = "white",
+    mgp = c(2.0, 1, 0),
+    mar = c(2.75,3,1,1))
+# plot(x = dat3$ANI * 0.01,
+#      # xlab = "Average Nucleotide Identity (%)", # no xlab on this plot
+#      xlim = c(0.95, 1.0),
+#      xlab = "",
+#      y = (dat3$Incongruent_FS_Pairs / dat3$AllPairs),
+#      ylab = "Incongruent frameshift pairs", 
+#      ylim = c(0, 0.02),
+#      pch = 16,
+#      xaxs = "i",
+#      yaxs = "i",
+#      # xaxt = "n",
+#      yaxt = "n",
+#      xaxt = "n",
+#      cex = 0.5,
+#      col = ColVec2[1L])
+# wx <- dat3$Congruent_FS_Pairs > 0 | dat3$Incongruent_FS_Pairs > 0
+val_cex <- log10(dat3$Congruent_FS_Pairs[wx] + dat3$Incongruent_FS_Pairs[wx] + 1) / 2
+plot(y = dat3$Incongruent_FS_Pairs[wx] / (dat3$Congruent_FS_Pairs[wx] + dat3$Incongruent_FS_Pairs[wx]),
+     x = dat3$ANI[wx],
+     pch = 16,
+     ylim = c(0, 1),
+     xlim = c(95, 100),
+     col = ColVec2[1L],
+     xlab = "",
+     ylab = "Incongruent frameshifts",
+     xaxs = "i",
+     yaxs = "i",
+     yaxt = "n",
+     # xaxt = "n",
+     # cex = 0.5,
+     cex = val_cex)
+yaxisseq <- seq(from = 0,
+                to = 1,
+                by = 0.2)
+axis(side = 2,
+     at = yaxisseq,
+     labels = paste0(yaxisseq * 100,
+                     "%"))
+points(x = c(95.25, 95.6, 96.05),
+       y = c(.1, .1, .1),
+       cex = sort(c(range(val_cex),
+                    mean(range(val_cex)))),
+       pch = 16)
+text(x = c(95.25, 95.6, 96.05),
+     y = c(.2, .2, .2),
+     labels = trunc(sort(c(range(dat3$Congruent_FS_Pairs[wx] + dat3$Incongruent_FS_Pairs[wx] + 1),
+                           mean(dat3$Congruent_FS_Pairs[wx] + dat3$Incongruent_FS_Pairs[wx] + 1)))),
+     srt = 45,
+     adj = 0,
+     cex = 0.95)
+rect(xleft = 95.1,
+     ybottom = 0.0275,
+     ytop = .28,
+     xright = 96.3,
+     col = NULL)
+# xaxisseq <- seq(from = 95,
+#                 to = 100,
+#                 by = 1)
+# axis(side = 1,
+#      at = xaxisseq,
+#      labels = paste0(xaxisseq,
+#                      "%"))
+# axis(side = 1,
+#      at = seq(from = 0.9,
+#               to = 1.0,
+#               by = 0.02),
+#      labels = NA)
+spfit1 <- smooth.spline(y = dat3$Incongruent_FS_Pairs[wx] / (dat3$Congruent_FS_Pairs[wx] + dat3$Incongruent_FS_Pairs[wx]),
+                        x = dat3$ANI[wx],
+                        df = 10,
+                        w = dat3$Congruent_FS_Pairs[wx] + dat3$Incongruent_FS_Pairs[wx])
+spfit3 <- predict(spfit1)
+lines(x = spfit3$x,
+      y = spfit3$y,
+      col = "black")
+spfit3$y[length(spfit3$y)] -> val_fit1
+# 0.2158595
+
+# upper right histogram
+# bw default is for historic and backwards compatibility
+par(bg = "white",
+    mgp = c(2.0, 1.15, 0),
+    mar = c(2.75,0,1,1))
+
+brks <- seq(from = 0, to = 1, by = 0.01)
+yhist <- hist((dat3$Incongruent_FS_Pairs[wx] / (dat3$Congruent_FS_Pairs[wx] + dat3$Incongruent_FS_Pairs[wx]))[dat3$ANI >= 95],
+              breaks = brks,
+              plot = FALSE)
+barplot(yhist$density,
+        axes = TRUE,
+        space = 0,
+        horiz = TRUE,
+        ylim = c(0, 100),
+        xaxp = c(0, 0, 101),
+        yaxp = c(0, 0, 101),
+        yaxs = "i",
+        xaxt = "n",
+        xpd = FALSE)
+
+# z1 <- density(dat3$Incongruent_FS_Pairs / dat3$AllPairs, bw = "SJ")
+# brks <- seq(from = 0,
+#             to = max(dat3$Incongruent_FS_Pairs / dat3$AllPairs),
+#             by = 0.00025)
+# yhist <- hist((dat3$Incongruent_FS_Pairs / dat3$AllPairs)[dat3$ANI >= 95],
+#               breaks = brks,
+#               plot = FALSE)
+# ylim1 <- which(yhist$breaks == 0.02)
+# ylim2 <- which(yhist$breaks == 0)
+# barplot(yhist$density,
+#         axes = FALSE,
+#         space = 0,
+#         horiz = TRUE,
+#         ylim = c(3, ylim1), # full disclosure, i don't know why this ylim needs to be adjusted this way ... but yaxs ends up cutting off the most dense bar without this and yaxp
+#         xpd = FALSE,
+#         yaxp = c(0, 0, ylim1))
+# plot(x = z1$y,
+#      y = z1$x,
+#      # xlim = c(90, 100),
+#      ylim = c(0, 0.02),
+#      xaxs = "i",
+#      yaxs = "i",
+#      lty = 1,
+#      type = "l",
+#      xlab = "",
+#      ylab = "",
+#      axes = FALSE)
+# segments(x0 = 10,
+#          x1 = 10,
+#          y0 = 0.00,
+#          y1 = 0.02)
+# segments(x0 = 0,
+#          x1 = 15500,
+#          y0 = 0.00001,
+#          y1 = 0.00001)
+# polygon(x = c(z1$y, 0),
+#         y = c(z1$x, 0),
+#         col = ColVec2[1L])
+
+# incongruent internal stops
+par(bg = "white",
+    mgp = c(2.0, 1, 0),
+    mar = c(3,3,1,1))
+# wx <- dat3$Congruent_IS_Pairs > 0 | dat3$Incongruent_IS_Pairs > 0
+val_cex <- log10(dat3$Congruent_IS_Pairs[wx] + dat3$Incongruent_IS_Pairs[wx] + 1) / 2
+plot(x = dat3$ANI[wx],
+     xlab = "Average Nucleotide Identity (%)",
+     xlim = c(95, 100),
+     y = dat3$Incongruent_IS_Pairs[wx] / (dat3$Congruent_IS_Pairs[wx] + dat3$Incongruent_IS_Pairs[wx]),
+     ylab = "Incongruent internal stops",
+     ylim = c(0, 1),
+     pch = 16,
+     xaxs = "i",
+     yaxs = "i",
+     yaxt = "n",
+     # xaxt = "n",
+     # cex = 0.5,
+     cex = val_cex,
+     col = ColVec2[2L])
+yaxisseq <- seq(from = 0,
+                to = 1,
+                by = .2)
+axis(side = 2,
+     at = yaxisseq,
+     labels = paste0(yaxisseq * 100,
+                     "%"))
+points(x = c(95.25, 95.6, 96.05),
+       y = c(.1, .1, .1),
+       cex = sort(c(range(val_cex),
+                    mean(range(val_cex)))),
+       pch = 16)
+text(x = c(95.25, 95.6, 96.05),
+     y = c(.2, .2, .2),
+     labels = trunc(sort(c(range(dat3$Congruent_IS_Pairs[wx] + dat3$Incongruent_IS_Pairs[wx] + 1),
+                           mean(dat3$Congruent_IS_Pairs[wx] + dat3$Incongruent_IS_Pairs[wx] + 1)))),
+     srt = 45,
+     adj = 0,
+     cex = 0.95)
+rect(xleft = 95.1,
+     ybottom = 0.0275,
+     ytop = .28,
+     xright = 96.3,
+     col = NULL)
+spfit1 <- smooth.spline(x = dat3$ANI[wx],
+                        y = (dat3$Incongruent_IS_Pairs[wx] / (dat3$Incongruent_IS_Pairs[wx] + dat3$Congruent_IS_Pairs[wx])),
+                        df = 10,
+                        w = dat3$Incongruent_IS_Pairs[wx] + dat3$Congruent_IS_Pairs[wx])
+spfit3 <- predict(spfit1)
+lines(x = spfit3$x,
+      y = spfit3$y,
+      col = "black")
+spfit3$y[length(spfit3$y)] -> val_fit2
+# 0.08220196
+
+# lower right histogram
+par(bg = "white",
+    mgp = c(2.0, 1.15, 0),
+    mar = c(3,0,1,1))
+z1 <- density((dat3$Incongruent_IS_Pairs / dat3$AllPairs), bw = "SJ")
+brks <- seq(from = 0, to = 1, by = 0.01)
+yhist <- hist((dat3$Incongruent_IS_Pairs[wx] / (dat3$Congruent_IS_Pairs[wx] + dat3$Incongruent_IS_Pairs[wx]))[dat3$ANI >= 95],
+              breaks = brks,
+              plot = FALSE)
+barplot(yhist$density,
+        axes = TRUE,
+        space = 0,
+        horiz = TRUE,
+        ylim = c(0, 100), # full disclosure, i don't know why this ylim needs to be adjusted this way ... but yaxs ends up cutting off the most dense bar without this and yaxp
+        xaxp = c(0, 0, 101),
+        yaxp = c(0, 0, 101),
+        yaxs = "i",
+        xaxt = "n",
+        xpd = FALSE)
+# # enforce same bin size to match top plot,
+# # scale is 1/4 on the y axis
+# brks <- seq(from = 0,
+#             to = max(dat3$Incongruent_FS_Pairs / dat3$AllPairs),
+#             by = 0.00025 / 4)
+# yhist <- hist((dat3$Incongruent_IS_Pairs / dat3$AllPairs)[dat3$ANI >= 95],
+#               breaks = brks,
+#               plot = FALSE)
+# ylim1 <- which(yhist$breaks == 0.005)
+# ylim2 <- which(yhist$breaks == 0)
+# barplot(yhist$density,
+#         axes = FALSE,
+#         space = 0,
+#         horiz = TRUE,
+#         ylim = c(3, ylim1), # full disclosure, i don't know why this ylim needs to be adjusted this way ... but yaxs ends up cutting off the most dense bar without this and yaxp
+#         xpd = FALSE,
+#         yaxp = c(0, 0, ylim1))
+
+# plot(x = z1$y,
+#      y = z1$x,
+#      ylim = c(0, 0.005),
+#      xaxs = "i",
+#      yaxs = "i",
+#      lty = 1,
+#      type = "l",
+#      xlab = "",
+#      ylab = "",
+#      axes = FALSE)
+# segments(x0 = 10,
+#          x1 = 10,
+#          y0 = 0.00,
+#          y1 = 0.015)
+# segments(x0 = 0,
+#          x1 = 21000,
+#          y0 = 0.00001,
+#          y1 = 0.00001)
+# # segments(x0 = 0.02,
+# #          x1 = 0.23,
+# #          y0 = 0.005,
+# #          y1 = 0.005,
+# #          xpd = TRUE)
+# polygon(x = c(z1$y, 0),
+#         y = c(z1$x, 0),
+#         col = ColVec2[2L])
+
+cat(paste("\nframeshift spline fit at 100 ==", val_fit1, "\n",
+          "internal stop split fit at 100 ==", val_fit2))
+```
+
+### Figure 2:
+
+```{r inference-and-observation, include = TRUE, echo = FALSE}
+#| dev = c('png', 'pdf'), fig.width = 7, fig.height = 7, fig.align = "center",
+#| fig.cap = "Causal inference and observational distributions of pseudogenes"
+
+load(file = "InputData/TetradEdges.RData",
+     verbose = FALSE)
+load(file = "InputData/Technology_Observations_v01.RData",
+     verbose = FALSE)
+
+g <- graph_from_data_frame(d = df,
+                           directed = TRUE)
+E(g)$weight <- df$weight
+
+# V(g)$name <- gsub(pattern = " ",
+#                   replacement = "\n",
+#                   x = V(g)$name)
+# available nodes:
+avl_nodes <- colnames(tetradtable_v04)
+avl_nodes <- gsub(x = avl_nodes,
+                  pattern = "_",
+                  replacement = " ")
+# submitter controlled: 4
+# sequencing/assembly outcome, non-pseudo related: 5
+# pseudos: 6
+node_cols <- ColVec1[c(4,5,4,4,4,6,6,6,5,5)]
+# node_cols <- ColVec1[c(1,2,1,1,1,3,3,3,2,2)]
+pres_nodes <- attr(V(g), "names")
+
+ColVec5 <- ColVec1[match(x = df$type,
+                         table = unique(df$type))]
+
+weights2 <- df$weight * 100
+# weights2[weights2 == 100] <- 99
+ColVec6 <- paste0(ColVec5,
+                  formatC(x = weights2,
+                          width = 2,
+                          flag = 0,
+                          format = "d"))
+ColVec6[weights2 == 100] <- ColVec5[weights2 == 100]
+
+## dropping igraph plots because erik has this in keynote
+# layout(mat = matrix(data = c(1,1,1,1,
+#                              1,1,1,1,
+#                              2,2,3,3,
+#                              2,2,3,3,
+#                              4,4,5,5,
+#                              4,4,5,5),
+#                     ncol = 4,
+#                     byrow = TRUE))
+# l <- layout_with_sugiyama(g)
+# l <- matrix(data = c(1.5, 2.5, 1.0, 4.0, 1.0, 4.5, 3.0, -1.0, 6.0,
+#                      2.0, 3.0, 3.0, 3.0, 1.0, 1.0, 2.0, 2.0, 2.0),
+#             ncol = 2)
+# l <- layout_with_dh(g)
+# set.seed(1986)
+# par(mgp = c(2,1,0),
+#     mar = c(1,1,1,1),
+#     bg = "white")
+# plot(g,
+#      layout=l,
+#      # vertex.shape = "rectangle",
+#      # vertex.size = (strwidth(attr(V(g), "names")) + strwidth("oo")) * 25,
+#      # vertex.size2 = strheight("I") * 2 * 15,
+#      vertex.shape = "circle",
+#      # vertex.size = max((strwidth(attr(V(g), "names")) + strwidth("o")) * 20),
+#      # vertex.size = seq_along(attr(V(g), "names")) * 5,
+#      vertex.size = 40,
+#      vertex.label.cex = .8,
+#      vertex.color = node_cols[match(x = pres_nodes,
+#                                     table = avl_nodes)],
+#      # edge.arrow.size = 1,
+#      edge.color = ColVec6,
+#      # edge.width = 2,
+#      vertex.frame.width = 0,
+#      vertex.label.color = "black")
+# legend("bottomleft",
+#        # legend = unique(df$type),
+#        legend = c("causal", "causal*"),
+#        lty = 1,
+#        lwd = 2,
+#        col = ColVec1[seq_along(unique(df$type))],
+#        cex = 1,
+#        bg = NA,
+#        bty = "n")
+
+layout(mat = matrix(data = 1:4,
+                    nrow = 2,
+                    byrow = TRUE))
+## assemblers
+PIN <- 562
+t1 <- tapply(X = dat1$IS_per_MB[dat1$TaxID == PIN],
+             INDEX = dat1$Assembler[dat1$TaxID == PIN],
+             FUN = c)
+t1 <- t1[order(lengths(t1), decreasing = TRUE)]
+t1 <- t1[-2L]
+t2 <- tapply(X = dat1$FS_per_MB[dat1$TaxID == PIN],
+             INDEX = dat1$Assembler[dat1$TaxID == PIN],
+             FUN = c)
+t2 <- t2[order(lengths(t2), decreasing = TRUE)]
+t2 <- t2[-2L]
+# frameshifts first
+# top left
+par(mar = c(3,3,1,0.75),
+    mgp = c(1.85, 0.65, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlab = "",
+     ylab = "Cumulative Frequency",
+     xlim = c(0, 40),
+     ylim = c(0, 1),
+     main = "",
+     xaxs = "i",
+     yaxs = "i")
+for (m1 in seq_len(7L)) {
+  points(x = sort(t2[[m1]]),
+         y = seq_along(t2[[m1]]) / length(t2[[m1]]),
+         col = ColVec1[m1],
+         pch = 46)
+}
+par(mar = c(3,3,1,0.75),
+    mgp = c(1.85, 0.65, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlab = "",
+     ylab = "",
+     xlim = c(0, 25),
+     ylim = c(0, 1),
+     main = "",
+     xaxs = "i",
+     yaxs = "i")
+for (m1 in seq_len(7L)) {
+  points(x = sort(t1[[m1]]),
+         y = seq_along(t1[[m1]]) / length(t1[[m1]]),
+         col = ColVec1[m1],
+         pch = 46)
+}
+legend(x = 14.5,
+       y = 0.50,
+       # legend = names(t1)[seq_len(7L)],
+       legend = c("SPAdes",
+                  "Platanus",
+                  "CLC",
+                  "Abyss",
+                  "Shovill",
+                  "A5",
+                  "Unicycler"),
+       pch = 20,
+       col = ColVec1[seq_len(7L)],
+       cex = 1,
+       bg = NA,
+       bty = "n")
+## platform
+PIN <- 562
+t1 <- tapply(X = dat1$IS_per_MB[dat1$TaxID == PIN],
+             INDEX = dat1$Technology[dat1$TaxID == PIN],
+             FUN = c)
+t1 <- t1[order(lengths(t1), decreasing = TRUE)]
+t2 <- tapply(X = dat1$FS_per_MB[dat1$TaxID == PIN],
+             INDEX = dat1$Technology[dat1$TaxID == PIN],
+             FUN = c)
+t2 <- t2[order(lengths(t2), decreasing = TRUE)]
+# frameshifts first
+# bottom left
+par(mar = c(3,3,1,0.75),
+    mgp = c(1.85, 0.65, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlab = "Frameshifts per Mbp",
+     ylab = "Cumulative Frequency",
+     xlim = c(0, 40),
+     ylim = c(0, 1),
+     main = "",
+     xaxs = "i",
+     yaxs = "i")
+for (m1 in seq_len(7L)) {
+  points(x = sort(t2[[m1]]),
+         y = seq_along(t2[[m1]]) / length(t2[[m1]]),
+         col = ColVec1[m1],
+         pch = 46)
+}
+par(mar = c(3,3,1,0.75),
+    mgp = c(1.85, 0.65, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlab = "Internal stops per Mbp",
+     ylab = "",
+     xlim = c(0, 25),
+     ylim = c(0, 1),
+     main = "",
+     xaxs = "i",
+     yaxs = "i")
+for (m1 in seq_len(7L)) {
+  points(x = sort(t1[[m1]]),
+         y = seq_along(t1[[m1]]) / length(t1[[m1]]),
+         col = ColVec1[m1],
+         pch = 46)
+}
+legend(x = 12.5,
+       y = 0.50,
+       # legend = names(t1)[seq_len(7L)],
+       # legend = c("Ill. 1x",
+       #            "Ill + ONT",
+       #            "PB",
+       #            "Ill. >=2x",
+       #            "Ill. + PB",
+       #            "Ion Torrent"),
+       legend = c("Illumina 1x",
+                  "Illumina + ONT",
+                  "PacBio",
+                  "Illumina 2x",
+                  "Illumina + PacBio",
+                  "ONT",
+                  "Ion Torrent"),
+       pch = 20,
+       col = ColVec1[seq_len(7L)],
+       cex = 1,
+       bg = NA,
+       bty = "n")
+```
+
+### Tetrad Table for Figure 2:
+
+```{r inference-and-observation-table, include = TRUE, echo = FALSE}
+
+kable(df)
+
+```
+
+### Figure 3:
+
+```{r influence-of-assembler, include = TRUE, echo = FALSE}
+#| dev = c('png', 'pdf'), fig.width = 7, fig.height = 7, fig.align = "center",
+#| fig.cap = "Within a species, different assemblers provide unique distributions of pseudogenes"
+
+load(file = "InputData/Neisseria_v02.RData",
+     verbose = FALSE)
+load(file = "InputData/Neisseria_v03.RData",
+     verbose = FALSE)
+
+U_Assembler <- unique(dat1$Assembler)
+s1 <- names(which(table(dat1$BioSample) == 4L))
+dat1 <- dat1[dat1$BioSample %in% s1, ]
+print(paste(nrow(dat1) / 4, "total source reads with completed reassemblies for all chosen assemblers."))
+ISperMB <- (dat1$IS / dat1$AssemblySize) * 1000000
+FSperMB <- (dat1$FR / dat1$AssemblySize) * 1000000
+# negative vals mean reported counts are higher than reassembled counts
+ISdev <- ISperMB - dat2$ISperMB[match(x = dat1$BioSample,
+                                      table = dat2$BioSample)]
+FSdev <- FSperMB - dat2$FSperMB[match(x = dat1$BioSample,
+                                      table = dat2$BioSample)]
+
+layout(mat = matrix(data = 1:4,
+                    nrow = 2))
+# top left, no x axis label
+par(mar = c(3,3,2,1),
+    mgp = c(1.5, 0.75, 0),
+    cex.lab = 0.85,
+    cex.axis = 0.85,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlab = "Frameshifts per Mbp",
+     ylab = "Cumulative Frequency",
+     ylim = c(0, 1),
+     xlim = c(40, 60),
+     xaxs = "i",
+     yaxs = "i")
+legend("bottomright",
+       # legend = U_Assembler,
+       # legend = c("MEGAHIT", "SKESA", "SPAdes", "Unicycler"),
+       legend = c("MEGAHIT", "SPAdes", "Unicycler", "SKESA"),
+       lty = 1,
+       # col = ColVec1[seq_along(U_Assembler)],
+       col = ColVec1[c(1,3,4,2)],
+       cex = 0.75,
+       bg = NA,
+       bty = "n")
+# text(y = .9,
+#      x = 42,
+#      labels = bquote(bold("A")),
+#      cex = 1.6)
+for (m1 in seq_along(U_Assembler)) {
+  pv3 <- dat1$Assembler == U_Assembler[m1]
+  
+  lines(x = sort(FSperMB[pv3]),
+        y = seq(sum(pv3)) / sum(pv3),
+        col = ColVec1[m1],
+        lty = 1)
+}
+names(FSVenn) <- c("MEGAHIT", "SKESA", "SPAdes", "Unicycler")
+AdHocVenn(InputList = FSVenn,
+          sigdigs = 1,
+          PARSET = c(0.5, 0.5, 0.5, 0.5),
+          SHADECOLS = ColVec2)
+# text(y = .86,
+#      x = .05,
+#      labels = bquote(bold("B")),
+#      cex = 1.6)
+# bottom left
+par(mar = c(3,2,2,2),
+    mgp = c(1.5, 0.75, 0),
+    cex.lab = 0.85,
+    cex.axis = 0.85,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlab = "Internal stops per Mbp",
+     ylab = "",
+     # ylab = "Cumulative Frequency",
+     ylim = c(0, 1),
+     xlim = c(14, 24),
+     # yaxt = "n",
+     xaxs = "i",
+     yaxs = "i")
+# axis(side = 2,
+#      at = seq(from = 0,
+#               to = 1,
+#               by = 0.2),
+#      labels = NA)
+# text(y = .9,
+#      x = 15,
+#      labels = bquote(bold("C")),
+#      cex = 1.6)
+for (m1 in seq_along(U_Assembler)) {
+  pv3 <- dat1$Assembler == U_Assembler[m1]
+  
+  lines(x = sort(ISperMB[pv3]),
+        y = seq(sum(pv3)) / sum(pv3),
+        col = ColVec1[m1],
+        lty = 1)
+  
+}
+names(ISVenn) <- c("MEGAHIT", "SKESA", "SPAdes", "Unicycler")
+AdHocVenn(InputList = ISVenn,
+          sigdigs = 1,
+          PARSET = c(0.5, 0.5, 0.5, 0.5),
+          SHADECOLS = ColVec2)
+```
+
+### Figure 4:
+
+```{r matched-sra-run-deviation, include = TRUE, echo = FALSE}
+#| dev = c('png', 'pdf'), fig.width = 7, fig.height = 3.5, fig.align = "center",
+#| fig.cap = "When multiple SRA runs for the same biosample are available deviations between run can be queried"
+
+load(file = "InputData/MultRunReassemblies_v02.RData",
+     verbose = FALSE)
+
+layout(mat = matrix(data = c(2,1),
+                    nrow = 1))
+par(mar = c(4,3,2,0.5),
+    mgp = c(1.75, 0.75, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     # xlab = "\u0394 IS per MB",
+     xlab = expression(""*Delta*" Internal stops per Mbp"),
+     # ylab = "Cumulative Frequency",
+     ylab = "",
+     # yaxt = "n",
+     ylim = c(0, 1),
+     xlim = c(-20, 80),
+     xaxs = "i",
+     yaxs = "i")
+# axis(side = 2,
+#      at = seq(from = 0,
+#               to = 1,
+#               by = 0.2),
+#      labels = NA)
+# text(y = .9,
+#      x = -10,
+#      labels = bquote(bold("A")),
+#      cex = 1.5)
+
+for (m1 in seq_along(Cat2)) {
+  # points(x = ISDiffs1[[m1]],
+  #        y = seq_along(ISDiffs1[[m1]]) / length(ISDiffs1[[m1]]),
+  #        col = ColVec1[m1],
+  #        pch = 20)
+  yvals <- seq_along(ISDiffs1[[m1]]) / length(ISDiffs1[[m1]])
+  p1 <- mean(ISDiffs1[[m1]])
+  p2 <- yvals[which.min(abs(ISDiffs1[[m1]] - p1))]
+  # points(x = ISDiffs1[[m1]],
+  #        y = yvals,
+  #        col = ColVec1[m1],
+  #        pch = 46)
+  lines(x = ISDiffs1[[m1]],
+        y = yvals,
+        col = ColVec1[m1],
+        lwd = 1)
+  # erik request to drop mean
+  # points(x = p1,
+  #        y = p2,
+  #        pch = 2,
+  #        col = ColVec1[m1])
+}
+abline(v = 0,
+       lty = 2,
+       lwd = 2,
+       col = ColVec2[length(ColVec2)])
+# abline(v = 0, lty = 2)
+legend("bottomright",
+       # legend = c("Illumina - Illumina (n = 3146)",
+       #            "454 - Illumina (n = 262)",
+       #            "ONT - Illumina (n = 1646)",
+       #            "PacBio - Illumina (n = 934)",
+       #            "454 - 454 (n = 173)",
+       #            "PacBio - PacBio (n = 276)"),
+       legend = c("Illumina - Illumina, n = 2837",
+                  "454 - Illumina, n = 217",
+                  "ONT - Illumina, n = 1428",
+                  "PacBio - Illumina, n = 782",
+                  "454 - 454, n = 74",
+                  "PacBio - PacBio, n = 290"),
+       # legend = paste(sub(pattern = "_",
+       #                    replacement = " - ",
+       #                    x = Cat2),
+       #                ", n = ",
+       #                as.integer(table(CatSubSet)),
+       #                sep = ""),
+       # pch = ifelse(test = Cat2 %in% Cat2[2:4],
+       #              yes = 17,
+       #              no = 20),
+       # pch = 2,
+       col = ColVec1[seq_along(Cat2)],
+       lty = 1,
+       cex = 0.65,
+       bg = NA,
+       bty = "n")
+par(mar = c(4,3,2,0.5),
+    mgp = c(1.75, 0.75, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlab = expression(""*Delta*" Frameshifts per Mbp"),
+     # xlab = "\u0394 Frameshifts per MB",
+     # ylab = "",
+     ylab = "Cumulative Frequency",
+     ylim = c(0, 1),
+     xlim = c(-100, 300),
+     xaxs = "i",
+     yaxs = "i")
+# text(y = .9,
+#      x = -40,
+#      labels = bquote(bold("B")),
+#      cex = 1.5)
+
+for (m1 in seq_along(Cat2)) {
+  # points(x = ISDiffs1[[m1]],
+  #        y = seq_along(ISDiffs1[[m1]]) / length(ISDiffs1[[m1]]),
+  #        col = ColVec1[m1],
+  #        pch = 20)
+  yvals <- seq_along(FSDiffs1[[m1]]) / length(FSDiffs1[[m1]])
+  p1 <- mean(FSDiffs1[[m1]])
+  p2 <- yvals[which.min(abs(FSDiffs1[[m1]] - p1))]
+  # points(x = FSDiffs1[[m1]],
+  #        y = yvals,
+  #        col = ColVec1[m1],
+  #        pch = 46)
+  lines(x = FSDiffs1[[m1]],
+        y = yvals,
+        col = ColVec1[m1],
+        lwd = 1)
+  # erik request to drop points
+  # points(x = p1,
+  #        y = p2,
+  #        pch = 2,
+  #        col = ColVec1[m1])
+}
+abline(v = 0,
+       lwd = 2,
+       lty = 2,
+       col = ColVec2[length(ColVec2)])
+
+```
+
+### Figure 5:
+
+```{r predicted-behavior, include = TRUE, echo = FALSE}
+#| dev = c('png', 'pdf'), fig.width = 3.5, fig.height = 7, fig.align = "center",
+#| fig.cap = "Assemblies generated from simulated reads provide an opportunity to model pseudogenes as an outcome for coverage (quality not shown)"
+
+ColVec1 <- c('#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#42d4f4', '#f032e6', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3', '#000075', '#a9a9a9', '#ffffff', '#000000')
+ColVec2 <- paste0(ColVec1,
+                  "33")
+ColVec3 <- paste0(ColVec1,
+                  "15")
+
+load(file = "InputData/SimulatedEcoliStats.RData",
+     verbose = FALSE)
+load(file = "InputData/GenBank_Assembly_Summary.RData",
+     verbose = FALSE)
+load(file = "InputData/GenBank_SRA_Summary.RData",
+     verbose = FALSE)
+
+# bin out the results for intercept for frameshifts
+FS_BINS_A <- matrix(data = findInterval(x = fs_vals03,
+                                        vec = seq(from = min(floor(range(fs_vals03[, 1]))),
+                                                  to = max(ceiling(range(fs_vals03[, 1]))),
+                                                  length.out = 100)),
+                    nrow = nrow(fs_vals03))
+# bin out the results for coverage for frameshifts
+FS_BINS_B <- matrix(data = findInterval(x = fs_vals03,
+                                        vec = seq(from = min(floor(range(fs_vals03[, 2:3]))),
+                                                  to = max(ceiling(range(fs_vals03[, 2:3]))),
+                                                  length.out = 100)),
+                    nrow = nrow(fs_vals03))
+# bin out the results for quality for frameshifts
+FS_BINS_C <- matrix(data = findInterval(x = fs_vals03,
+                                        vec = seq(from = min(floor(range(fs_vals03[, 2:3]))),
+                                                  to = max(ceiling(range(fs_vals03[, 2:3]))),
+                                                  length.out = 100)),
+                    nrow = nrow(fs_vals03))
+# bin out the results for intercept for internal stops
+IS_BINS_A <- matrix(data = findInterval(x = is_vals03,
+                                        vec = seq(from = min(floor(range(is_vals03[, 1]))),
+                                                  to = max(ceiling(range(is_vals03[, 1]))),
+                                                  length.out = 100)),
+                    nrow = nrow(is_vals03))
+# bin out the results for coverage for internal stops
+IS_BINS_B <- matrix(data = findInterval(x = is_vals03,
+                                        vec = seq(from = min(floor(range(is_vals03[, 2:3]))),
+                                                  to = max(ceiling(range(is_vals03[, 2:3]))),
+                                                  length.out = 100)),
+                    nrow = nrow(is_vals03))
+# bin out the results for quality for internal stops
+IS_BINS_C <- matrix(data = findInterval(x = is_vals03,
+                                        vec = seq(from = min(floor(range(is_vals03[, 2:3]))),
+                                                  to = max(ceiling(range(is_vals03[, 2:3]))),
+                                                  length.out = 100)),
+                    nrow = nrow(is_vals03))
+
+
+o1 <- c(1:4, 13, 16) # paired end
+o2 <- c(5:8, 14, 17)
+o3 <- c(9:12, 15, 18)
+o4 <- c(19:22, 31, 34) # single end
+o5 <- c(23:26, 32, 35)
+o6 <- c(27:30, 33, 36)
+fs_vals05 <- cbind(fs_vals03[o1, ],
+                   fs_vals03[o2, ],
+                   fs_vals03[o3, ])
+fs_vals05 <- fs_vals05[, c(1,4,7,2,5,8,3,6,9)]
+fs_vals06 <- cbind(fs_vals03[o4, ],
+                   fs_vals03[o5, ],
+                   fs_vals03[o6, ])
+fs_vals06 <- fs_vals06[, c(1,4,7,2,5,8,3,6,9)]
+fs_vals07 <- cbind(fs_vals04[o1, ],
+                   fs_vals04[o2, ],
+                   fs_vals04[o3, ])
+fs_vals07 <- fs_vals07[, c(1,4,7,2,5,8,3,6,9)]
+fs_vals08 <- cbind(fs_vals04[o4, ],
+                   fs_vals04[o5, ],
+                   fs_vals04[o6, ])
+fs_vals08 <- fs_vals08[, c(1,4,7,2,5,8,3,6,9)]
+
+is_vals05 <- cbind(is_vals03[o1, ],
+                   is_vals03[o2, ],
+                   is_vals03[o3, ])
+is_vals05 <- is_vals05[, c(1,4,7,2,5,8,3,6,9)]
+is_vals06 <- cbind(is_vals03[o4, ],
+                   is_vals03[o5, ],
+                   is_vals03[o6, ])
+is_vals06 <- is_vals06[, c(1,4,7,2,5,8,3,6,9)]
+is_vals07 <- cbind(is_vals04[o1, ],
+                   is_vals04[o2, ],
+                   is_vals04[o3, ])
+is_vals07 <- is_vals07[, c(1,4,7,2,5,8,3,6,9)]
+is_vals08 <- cbind(is_vals04[o4, ],
+                   is_vals04[o5, ],
+                   is_vals04[o6, ])
+is_vals08 <- is_vals08[, c(1,4,7,2,5,8,3,6,9)]
+
+BINS01 <- cbind(FS_BINS_A[o1, ],
+                FS_BINS_B[o2, ],
+                FS_BINS_C[o3, ])
+BINS01 <- BINS01[, c(1,4,7,2,5,8,3,6,9)]
+BINS02 <- cbind(FS_BINS_A[o4, ],
+                FS_BINS_B[o5, ],
+                FS_BINS_C[o6, ])
+BINS02 <- BINS02[, c(1,4,7,2,5,8,3,6,9)]
+
+BINS03 <- cbind(IS_BINS_A[o1, ],
+                IS_BINS_B[o2, ],
+                IS_BINS_C[o3, ])
+BINS03 <- BINS03[, c(1,4,7,2,5,8,3,6,9)]
+BINS04 <- cbind(IS_BINS_A[o4, ],
+                IS_BINS_B[o5, ],
+                IS_BINS_C[o6, ])
+BINS04 <- BINS04[, c(1,4,7,2,5,8,3,6,9)]
+
+# some hard coded things and some variables
+tot_genes <- 4379
+tot_nts <- 4641652
+cov_set <- seq(-1, 1, 0.01)
+qual_set <- seq(-4, 6, 0.01)
+
+# given coefficients, predict |delta pseudogenes| per Mbp
+predictResponse <- function(coef,
+                            COV,
+                            QUAL,
+                            TOT_GENE,
+                            TOT_NT) {
+  Y <- coef[1] + coef[2]*COV + coef[3]*QUAL
+  Y <- exp(Y)
+  Y <- Y/(1 + Y) # |delta pseudogenes| / (total genes)
+  Y*TOT_GENE/TOT_NT*1e6 # |delta pseudogenes| / Mbp
+}
+convertCoverage <- function(cov) {
+  50*(10^cov) # yes
+}
+convertQuality <- function(qual) {
+  qual + 34 # yes
+}
+layout(mat = matrix(data = c(1,
+                             1,
+                             2,
+                             2,
+                             2,
+                             3,
+                             3,
+                             3),
+                    ncol = 1,
+                    byrow = TRUE))
+# layout(mat = matrix(data = 1:4,
+#                     ncol = 2L))
+# top -- cdf of reported coverages in genbank
+
+s1 <- GenBankAccessions$Biosample %in% SRA_Meta$BioSample
+s2 <- GenBankAccessions$Biosample %in% SRA_Meta$BioSample[SRA_Meta$Platform == "ILLUMINA"]
+s3 <- GenBankAccessions$Biosample %in% SRA_Meta$BioSample[grepl(pattern = "HiSeq 2500",
+                                                                ignore.case = TRUE,
+                                                                x = SRA_Meta$Model)]
+s4 <- GenBankAccessions$Biosample %in% SRA_Meta$BioSample[grepl(pattern = "HiSeq X",
+                                                                ignore.case = TRUE,
+                                                                x = SRA_Meta$Model)]
+s5 <- GenBankAccessions$Biosample %in% SRA_Meta$BioSample[grepl(pattern = "MiSeq",
+                                                                ignore.case = TRUE,
+                                                                x = SRA_Meta$Model)]
+s6 <- rep(T, nrow(GenBankAccessions))
+s7 <- list(s6,
+           s1,
+           s2,
+           s3,
+           s4,
+           s5)
+
+par(mar = c(1,3,3,1),
+    mgp = c(1.75, 0.75, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 1,
+     y = 1,
+     xlab = "",
+     ylab = "Cumulative Frequency",
+     xlim = c(5, 500),
+     ylim = c(0, 1),
+     log = "x",
+     type = "n",
+     xaxs = "i",
+     yaxs = "i")
+for (m1 in seq_along(s7)) {
+  lines(x = sort(GenBankAccessions$Coverage[s7[[m1]]]),
+        y = seq_len(sum(s7[[m1]])) / sum(s7[[m1]]),
+        col = ColVec1[m1])
+}
+legend("topleft",
+       legend = c("All Genbank",
+                  "Genbank w/ SRA reads",
+                  "Genbank w/ SRA w/ Illumina",
+                  "Genbank w/ SRA w/ HiSeq 2500",
+                  "Genbank w/ SRA w/ HiSeq X",
+                  "Genbank w/ SRA w/ MiSeq"),
+       lty = 1,
+       col = ColVec1[seq_len(7)],
+       bty = "n",
+       bg = NA,
+       cex = 0.85)
+par(mar = c(2,3,2,1),
+    mgp = c(1.75, 0.75, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+suppressWarnings(plot(x = 0,
+                      y = 0,
+                      type = "n",
+                      xlim = c(5, 500),
+                      ylim = c(0, 5),
+                      xaxs = "i",
+                      # xaxt = "n",
+                      xlab = "",
+                      ylab = expression("|"*Delta*" Frameshifts per Mbp|"),
+                      log = "x"))
+# axis(side = 1,
+#      at = c(5, 10, 20, 50, 100, 200, 500),
+#      labels = NA)
+for (m1 in seq_len(nrow(fs_vals05))) {
+  for (m2 in seq_len(ncol(fs_vals05) / 3L)) {
+    c1 <- predictResponse(coef = fs_vals05[m1, c(m2, m2 + 3L, m2 + 6L)],
+                          COV = cov_set,
+                          QUAL = 0,
+                          TOT_GENE = tot_genes,
+                          TOT_NT = tot_nts)
+    c2 <- convertCoverage(cov = cov_set)
+    lines(x = c2,
+          y = c1,
+          col = ColVec1[m1],
+          lty = m2)
+  }
+}
+L <- legend(x = 34,
+            y = 4,
+            legend = rep(NA, 18),
+            col = rep(ColVec1[seq_len(6)],
+                      3L),
+            lty = c(rep(1, 6),
+                    rep(2, 6),
+                    rep(3, 6)),
+            pch = rep(NA, 18),
+            ncol = 3L,
+            bty = 'n',
+            x.intersp = 0.5,
+            inset = 0.02,
+            cex = 0.75)
+legend(x = 34,
+       y = 4,
+       legend = c("MEGAHIT",
+                  "SKESA",
+                  "SPAdes",
+                  "Unicycler",
+                  "Unicycler + ONT",
+                  "Unicycler + PB"),
+       # col = rep(NA, 6),
+       # lty = rep(NA, 6),
+       ncol = 1,
+       x.intersp = 7.5,
+       bg = NA,
+       bty = "n",
+       cex = 0.75)
+text(x = c(34, 48, 69),
+     y = 4,
+     pos = 4,
+     xpd = TRUE,
+     cex = 0.75,
+     labels = rep(c("HiSeq 2500",
+                    "HiSeq X",
+                    "MiSeq v3"),
+                  3L),
+     srt = 45,
+     adj = 0)
+# bottom left paired end internal stops as coverage varies
+par(mar = c(3,3,1,1),
+    mgp = c(1.75, 0.75, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+suppressWarnings(plot(x = 0,
+                      y = 0,
+                      type = "n",
+                      xlim = c(5, 500),
+                      ylim = c(0, 5),
+                      xaxs = "i",
+                      xlab = "Fold Coverage of Genome",
+                      ylab = expression("|"*Delta*" Internal stops per Mbp|"),
+                      log = "x"))
+for (m1 in seq_len(nrow(is_vals05))) {
+  for (m2 in seq_len(ncol(is_vals05) / 3L)) {
+    c1 <- predictResponse(coef = is_vals05[m1, c(m2, m2 + 3L, m2 + 6L)],
+                          COV = cov_set,
+                          QUAL = 0,
+                          TOT_GENE = tot_genes,
+                          TOT_NT = tot_nts)
+    c2 <- convertCoverage(cov = cov_set)
+    lines(x = c2,
+          y = c1,
+          col = ColVec1[m1],
+          lty = m2)
+  }
+}
+
+cat(paste("\n", sum(SRA_Meta$BioSample %in% GenBankAccessions$Biosample) / nrow(GenBankAccessions), "percent of biosamples in genbank have associated SRA reads"))
+
+cat(paste("\n",
+          length(unique(SRA_Meta$BioSample[SRA_Meta$Platform == "ILLUMINA"])) / length(unique(SRA_Meta$BioSample)),
+          "percent of unique SRA biosamples have associated Illumina reads"))
+
+```
+
+
+```{r, include = TRUE}
+ls()
+sessionInfo()
+```
+
