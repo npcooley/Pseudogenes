@@ -1,9 +1,5 @@
-<center>
-**Plots and scripts for:**
-</center>
-<center>
-Many purported pseudogenes in bacterial genomes are bonafide genes
-</center>
+Plots and Scripts for: Many purported pseudogenes in bacterial genomes
+are bonafide genes
 ================
 Nicholas P. Cooley, Department of Biomedical Informatics, University of
 PittsburghErik S. Wright, Department of Biomedical Informatics,
@@ -17,10 +13,11 @@ plots present in the manuscript in progress **Many purported pseudogenes
 in bacterial genomes are bonafide genes**. The data present in this repo
 are mostly lightweight summary tables capable of fitting within github
 size restrictions, while the large scale data analysis results will be
-deposited on zenodo.
+deposited on zenodo. Some summary data that pulls form these tables will
+also be placed on zenodo as it exceeded github file size limits
 
-Pseudogenes can represent at least three separate phenomena in assembled
-genomes, 1) recent evolutionary changes that can serve as an
+Pseudogenes can represent one of at least three separate phenomena in
+assembled genomes, 1) recent evolutionary changes that can serve as an
 observational marker of how pressure is affecting functions and tools
 within a genome, 2) an error introduced into an assembly via error modes
 inherent to the sequencing platform or the assembly process, or 3) an
@@ -36,19 +33,15 @@ collection and generation.
 It would take an enormous effort to wholesale sanger sequence every
 pseudogene present in RefSeq or Genbank. It is likely not even possible,
 nor is it clear that that type of experiment is necessary. However, some
-interrogations of the diverse data present in RefSeq are possible, and
-potentially useful. Metadata can be scraped from the SRA and we can
-generate direct observations of how relative counts of pseudogenes are
-related to extractable pieces of data, such as reported assembler,
-platforms for available SRA runs, submission year, reported assembly
-status, Contig N50 over total length, and genus. These direct
-observations can be coupled with causal inference via Tetrad to predict
-any causal links between metadata categories and relative pseudogene
-counts.
-
-Additionally SRA data can be reassembled under controlled conditions and
-pseudogene counts and homolog groups as outputs can be used to compare
-conditions.
+interrogations of the diverse data present in RefSeq, GenBank, and the
+SRA are possible, and potentially useful. Metadata can be scraped from
+the SRA and we can generate direct observations of how relative counts
+of pseudogenes are related to extractable pieces of data, such as
+reported assembler, platforms for available SRA runs, submission year,
+reported assembly status, Contig N50 over total length, and genus. These
+direct observations can be coupled with causal inference via Tetrad to
+predict any causal links between metadata categories and relative
+pseudogene counts.
 
 ### Figure 1:
 
@@ -136,46 +129,7 @@ model pseudogenes as an outcome for coverage (quality not shown)
     #  0.989657046482021 percent of unique SRA biosamples have associated Illumina reads
 
 ``` r
-ls()
-```
-
-    #   [1] "AdHocVenn"         "adjusted_counts"   "AssemblerCode"    
-    #   [4] "avl_nodes"         "BINS01"            "BINS02"           
-    #   [7] "BINS03"            "BINS04"            "brks"             
-    #  [10] "c1"                "c2"                "Cat2"             
-    #  [13] "CatSubSet"         "color.bar"         "ColVec1"          
-    #  [16] "ColVec2"           "ColVec3"           "ColVec5"          
-    #  [19] "ColVec6"           "convertCoverage"   "convertQuality"   
-    #  [22] "cov_set"           "dat1"              "dat2"             
-    #  [25] "dat3"              "df"                "encoding"         
-    #  [28] "FS_BINS_A"         "FS_BINS_B"         "FS_BINS_C"        
-    #  [31] "fs_vals03"         "fs_vals04"         "fs_vals05"        
-    #  [34] "fs_vals06"         "fs_vals07"         "fs_vals08"        
-    #  [37] "FSdev"             "FSDiffs"           "FSDiffs1"         
-    #  [40] "FSperMB"           "FSVenn"            "g"                
-    #  [43] "GenBankAccessions" "inputFile"         "IS_BINS_A"        
-    #  [46] "IS_BINS_B"         "IS_BINS_C"         "is_vals03"        
-    #  [49] "is_vals04"         "is_vals05"         "is_vals06"        
-    #  [52] "is_vals07"         "is_vals08"         "ISdev"            
-    #  [55] "ISDiffs"           "ISDiffs1"          "ISperMB"          
-    #  [58] "ISVenn"            "L"                 "m1"               
-    #  [61] "m2"                "node_cols"         "o1"               
-    #  [64] "o2"                "o3"                "o4"               
-    #  [67] "o5"                "o6"                "p1"               
-    #  [70] "p2"                "PIN"               "predictResponse"  
-    #  [73] "pres_nodes"        "pv3"               "qual_set"         
-    #  [76] "res3"              "res4"              "s1"               
-    #  [79] "s2"                "s3"                "s4"               
-    #  [82] "s5"                "s6"                "s7"               
-    #  [85] "spfit1"            "spfit3"            "SRA_Meta"         
-    #  [88] "t1"                "t2"                "tetradtable_v04"  
-    #  [91] "tophist"           "tot_genes"         "tot_nts"          
-    #  [94] "U_Assembler"       "val_cex"           "val_fit1"         
-    #  [97] "val_fit2"          "weights2"          "wx"               
-    # [100] "xlim1"             "xlim2"             "yaxisseq"         
-    # [103] "yhist"             "yvals"             "z1"
-
-``` r
+# ls()
 sessionInfo()
 ```
 

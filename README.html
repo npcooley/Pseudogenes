@@ -14,7 +14,7 @@
 
 <meta name="date" content="2023-09-15" />
 
-<title>README.knit</title>
+<title>Plots and Scripts for: Many purported pseudogenes in bacterial genomes are bonafide genes</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -351,12 +351,8 @@ display: none;
 
 
 
-<h1 class="title toc-ignore"><center>
-<strong>Plots and scripts for:</strong>
-</center>
-<center>
-Many purported pseudogenes in bacterial genomes are bonafide genes
-</center></h1>
+<h1 class="title toc-ignore">Plots and Scripts for: Many purported
+pseudogenes in bacterial genomes are bonafide genes</h1>
 <h4 class="author">Nicholas P. Cooley, Department of Biomedical
 Informatics, University of Pittsburgh</h4>
 <h4 class="author">Erik S. Wright, Department of Biomedical Informatics,
@@ -373,8 +369,10 @@ plots present in the manuscript in progress <strong>Many purported
 pseudogenes in bacterial genomes are bonafide genes</strong>. The data
 present in this repo are mostly lightweight summary tables capable of
 fitting within github size restrictions, while the large scale data
-analysis results will be deposited on zenodo.</p>
-<p>Pseudogenes can represent at least three separate phenomena in
+analysis results will be deposited on zenodo. Some summary data that
+pulls form these tables will also be placed on zenodo as it exceeded
+github file size limits</p>
+<p>Pseudogenes can represent one of at least three separate phenomena in
 assembled genomes, 1) recent evolutionary changes that can serve as an
 observational marker of how pressure is affecting functions and tools
 within a genome, 2) an error introduced into an assembly via error modes
@@ -390,18 +388,15 @@ choices made in data collection and generation.</p>
 <p>It would take an enormous effort to wholesale sanger sequence every
 pseudogene present in RefSeq or Genbank. It is likely not even possible,
 nor is it clear that that type of experiment is necessary. However, some
-interrogations of the diverse data present in RefSeq are possible, and
-potentially useful. Metadata can be scraped from the SRA and we can
-generate direct observations of how relative counts of pseudogenes are
-related to extractable pieces of data, such as reported assembler,
-platforms for available SRA runs, submission year, reported assembly
-status, Contig N50 over total length, and genus. These direct
-observations can be coupled with causal inference via Tetrad to predict
-any causal links between metadata categories and relative pseudogene
-counts.</p>
-<p>Additionally SRA data can be reassembled under controlled conditions
-and pseudogene counts and homolog groups as outputs can be used to
-compare conditions.</p>
+interrogations of the diverse data present in RefSeq, GenBank, and the
+SRA are possible, and potentially useful. Metadata can be scraped from
+the SRA and we can generate direct observations of how relative counts
+of pseudogenes are related to extractable pieces of data, such as
+reported assembler, platforms for available SRA runs, submission year,
+reported assembly status, Contig N50 over total length, and genus. These
+direct observations can be coupled with causal inference via Tetrad to
+predict any causal links between metadata categories and relative
+pseudogene counts.</p>
 <div id="figure-1" class="section level3">
 <h3>Figure 1:</h3>
 <pre><code># 
@@ -532,43 +527,8 @@ model pseudogenes as an outcome for coverage (quality not shown)
 #  0.672571234596583 percent of biosamples in genbank have associated SRA reads</code></pre>
 <pre><code># 
 #  0.989657046482021 percent of unique SRA biosamples have associated Illumina reads</code></pre>
-<pre class="r"><code>ls()</code></pre>
-<pre><code>#   [1] &quot;AdHocVenn&quot;         &quot;adjusted_counts&quot;   &quot;AssemblerCode&quot;    
-#   [4] &quot;avl_nodes&quot;         &quot;BINS01&quot;            &quot;BINS02&quot;           
-#   [7] &quot;BINS03&quot;            &quot;BINS04&quot;            &quot;brks&quot;             
-#  [10] &quot;c1&quot;                &quot;c2&quot;                &quot;Cat2&quot;             
-#  [13] &quot;CatSubSet&quot;         &quot;color.bar&quot;         &quot;ColVec1&quot;          
-#  [16] &quot;ColVec2&quot;           &quot;ColVec3&quot;           &quot;ColVec5&quot;          
-#  [19] &quot;ColVec6&quot;           &quot;convertCoverage&quot;   &quot;convertQuality&quot;   
-#  [22] &quot;cov_set&quot;           &quot;dat1&quot;              &quot;dat2&quot;             
-#  [25] &quot;dat3&quot;              &quot;df&quot;                &quot;encoding&quot;         
-#  [28] &quot;FS_BINS_A&quot;         &quot;FS_BINS_B&quot;         &quot;FS_BINS_C&quot;        
-#  [31] &quot;fs_vals03&quot;         &quot;fs_vals04&quot;         &quot;fs_vals05&quot;        
-#  [34] &quot;fs_vals06&quot;         &quot;fs_vals07&quot;         &quot;fs_vals08&quot;        
-#  [37] &quot;FSdev&quot;             &quot;FSDiffs&quot;           &quot;FSDiffs1&quot;         
-#  [40] &quot;FSperMB&quot;           &quot;FSVenn&quot;            &quot;g&quot;                
-#  [43] &quot;GenBankAccessions&quot; &quot;inputFile&quot;         &quot;IS_BINS_A&quot;        
-#  [46] &quot;IS_BINS_B&quot;         &quot;IS_BINS_C&quot;         &quot;is_vals03&quot;        
-#  [49] &quot;is_vals04&quot;         &quot;is_vals05&quot;         &quot;is_vals06&quot;        
-#  [52] &quot;is_vals07&quot;         &quot;is_vals08&quot;         &quot;ISdev&quot;            
-#  [55] &quot;ISDiffs&quot;           &quot;ISDiffs1&quot;          &quot;ISperMB&quot;          
-#  [58] &quot;ISVenn&quot;            &quot;L&quot;                 &quot;m1&quot;               
-#  [61] &quot;m2&quot;                &quot;node_cols&quot;         &quot;o1&quot;               
-#  [64] &quot;o2&quot;                &quot;o3&quot;                &quot;o4&quot;               
-#  [67] &quot;o5&quot;                &quot;o6&quot;                &quot;p1&quot;               
-#  [70] &quot;p2&quot;                &quot;PIN&quot;               &quot;predictResponse&quot;  
-#  [73] &quot;pres_nodes&quot;        &quot;pv3&quot;               &quot;qual_set&quot;         
-#  [76] &quot;res3&quot;              &quot;res4&quot;              &quot;s1&quot;               
-#  [79] &quot;s2&quot;                &quot;s3&quot;                &quot;s4&quot;               
-#  [82] &quot;s5&quot;                &quot;s6&quot;                &quot;s7&quot;               
-#  [85] &quot;spfit1&quot;            &quot;spfit3&quot;            &quot;SRA_Meta&quot;         
-#  [88] &quot;t1&quot;                &quot;t2&quot;                &quot;tetradtable_v04&quot;  
-#  [91] &quot;tophist&quot;           &quot;tot_genes&quot;         &quot;tot_nts&quot;          
-#  [94] &quot;U_Assembler&quot;       &quot;val_cex&quot;           &quot;val_fit1&quot;         
-#  [97] &quot;val_fit2&quot;          &quot;weights2&quot;          &quot;wx&quot;               
-# [100] &quot;xlim1&quot;             &quot;xlim2&quot;             &quot;yaxisseq&quot;         
-# [103] &quot;yhist&quot;             &quot;yvals&quot;             &quot;z1&quot;</code></pre>
-<pre class="r"><code>sessionInfo()</code></pre>
+<pre class="r"><code># ls()
+sessionInfo()</code></pre>
 <pre><code># R version 4.3.0 (2023-04-21)
 # Platform: x86_64-apple-darwin20 (64-bit)
 # Running under: macOS Monterey 12.4
