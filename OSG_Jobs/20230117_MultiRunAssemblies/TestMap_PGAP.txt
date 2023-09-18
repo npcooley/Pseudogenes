@@ -1,0 +1,10 @@
+7997 Controller_009488.yaml submol_009488.yaml Annotation_009488.gff Assembly_009488.fna.gz Assembly_009488.fna
+15591 Controller_018077.yaml submol_018077.yaml Annotation_018077.gff Assembly_018077.fna.gz Assembly_018077.fna
+12147 Controller_014199.yaml submol_014199.yaml Annotation_014199.gff Assembly_014199.fna.gz Assembly_014199.fna
+19185 Controller_022075.yaml submol_022075.yaml Annotation_022075.gff Assembly_022075.fna.gz Assembly_022075.fna
+5659 Controller_006760.yaml submol_006760.yaml Annotation_006760.gff Assembly_006760.fna.gz Assembly_006760.fna
+22996 Controller_026722.yaml submol_026722.yaml Annotation_026722.gff Assembly_026722.fna.gz Assembly_026722.fna
+5978 Controller_007176.yaml submol_007176.yaml Annotation_007176.gff Assembly_007176.fna.gz Assembly_007176.fna
+1569 Controller_001723.yaml submol_001723.yaml Annotation_001723.gff Assembly_001723.fna.gz Assembly_001723.fna
+16395 Controller_018918.yaml submol_018918.yaml Annotation_018918.gff Assembly_018918.fna.gz Assembly_018918.fna
+6377 Controller_007590.yaml submol_007590.yaml Annotation_007590.gff Assembly_007590.fna.gz Assembly_007590.fna

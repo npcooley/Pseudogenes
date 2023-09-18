@@ -1,0 +1,10 @@
+fasta:
+  class: File
+  location: Assembly.fna
+submol:
+  class: File
+  location: /srv/submol.yaml
+supplemental_data: { class: Directory, location: /srv/input-2022-04-14.build6021
+  }
+report_usage: true
+ignore_all_errors: true

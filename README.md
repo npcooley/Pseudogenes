@@ -12,10 +12,10 @@ plots present in the manuscript in progress **Many purported pseudogenes
 in bacterial genomes are bonafide genes**. The data present in this repo
 are mostly lightweight summary tables capable of fitting within github
 size restrictions. Scripts used to generate large initial data sets on
-the Open Science Grid are currently in the process of being added to
-this repo, while those data sets themselves are in the process of being
+the Open Science Grid are present in the `OSG_Jobs` folder, while the
+data sets generated from those jobs are in the process of being
 deposited on zenodo. Summary data that is too large for github, but
-necessary to knit this README and it’s associated figures is enumerated
+necessary to knit this README and it’s associated figures are enumerated
 in the `.gitignore` file for this repo and also present on
 [Zenodo](https://zenodo.org/record/8356318) under the DOI
 10.5281/zenodo.8356318.
