@@ -333,7 +333,7 @@ for (m1 in seq_along(res1[[2L]])) {
 ```
 
 # Figure S1: Mapping disagreements for *E. coli* strain NR 51487
-Alignments of Sanger reads implying assembly errors in the deposited assembly for *E. coli* strain NR 51487 (RefSeq accession: GCF_001593565.1). Of ten successfully generated reads mapping to the deposited RefSeq genome, six imply incorrect frameshifts in a gene annotated as a pseudogene. Numbers below alignments indicate nucleotide positions within the coding gene.
+Alignments of Sanger reads implying assembly errors in the deposited assembly for *E. coli* strain NR 51487 (RefSeq accession: GCF_001593565.1). Of ten successfully generated reads mapping to the deposited RefSeq genome, six imply incorrect frameshifts in a gene annotated as a pseudogene.
 
 \newpage
 
@@ -555,7 +555,7 @@ for (m1 in seq_along(newtabs)) {
 ```
 
 # Figure S2: Pseudogene distributions within species
-The top four most common species with captured assembler metadata were split into the top six most common combinations of submitter choices for reported assembler and technology represented by available SRA reads. The most common choice category in every species was a combination of SPAdes and a single SRA run of Illumina reads, and is represented in bold in each plot. Internal stops are represented by dotted lines, and frameshifts are represented by solid lines. The top four species present in this data, in order are *E. coli* (top left), *L. monocytogenes* (bottom left), *K. pneumoniae* (top right), and *P. aeruginosa* (bottom right). Descriptions of comparisons of the minor submitter choice combinations with the major submitter choice combination are present in **Table S1**. Inset legend names refer the rows in the associated supplemental tables.
+The top four most common species with captured assembler metadata were split into the top six most common combinations of submitter choices for reported assembler and technology represented by available SRA reads. The most common choice category in every species was a combination of SPAdes and a single SRA run of Illumina reads, and is represented in bold in each plot. Internal stops are represented by dotted lines, and frameshifts are represented by solid lines. The top four species present in this data, in order are *E. coli* (top left), *L. monocytogenes* (bottom left), *K. pneumoniae* (top right), and *P. aeruginosa* (bottom right). Descriptions of comparisons of the minor submitter choice combinations with the major submitter choice combination are present in **Table S1**. Inset legend names refer the rows in the associated supplemental table.
 
 \newpage
 
@@ -1154,7 +1154,7 @@ for (m1 in seq_len(nrow(is_vals05))) {
 ```
 
 # Figure S4: Modeled behavior of assemblies from simulated reads
-Predicted models for the absolute difference in frameshifts (top) and internal stops (bottom) per Mbp from a source genome for assemblies generated from simulated reads as average quality scores vary for an array of sequencing platforms and assemblers.
+Predicted models for the absolute difference in frameshifts (top) and internal stops (bottom) per Mbp from a source genome for assemblies generated from simulated reads as average quality scores vary for an array of sequencing platforms and assemblers. Results present are at a fixed coverage of 50-fold.
 
 \newpage
 
@@ -1227,7 +1227,8 @@ plot(x = dat5$ANI,
      # yaxs = "i",
      col = "#11111133")
 ph1 <- lm(formula = abs(abs_fs - found_ref_fs) / total_genes ~ ANI, data = dat5)
-ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
+ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
+# ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 # summary(lm(Y~X))$coefficients[2L, "Pr(>|t|)"]
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[1] * 10e2) / 10e2))),
@@ -1241,7 +1242,8 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[1] * 10e2) / 10e2)),
       line = -2,
       at = 99.8,
       cex = 0.5)
-mtext(bquote(paste("p-value = ", .(ph2))),
+mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
+      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
       side = 3,
       line = -3,
       at = 99.8,
@@ -1257,7 +1259,8 @@ plot(x = dat5$ANI,
      # yaxs = "i",
      col = "#11111133")
 ph1 <- lm(formula = total_contigs ~ ANI, data = dat5)
-ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
+ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
+# ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[3] * 10e2) / 10e2))),
       text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[3] * 10e2) / 10e2))),
@@ -1270,7 +1273,8 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[3] * 10e2) / 10e2)),
       line = -2,
       at = 99.6,
       cex = 0.5)
-mtext(bquote(paste("p-value = ", .(ph2))),
+mtext(# bquote(paste("p-value = ", .(ph2))),
+      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
       side = 3,
       line = -3,
       at = 99.6,
@@ -1285,7 +1289,8 @@ plot(x = dat5$ANI,
      # yaxs = "i",
      col = "#11111133")
 ph1 <- lm(formula = p_val ~ ANI, data = dat5)
-ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
+ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
+# ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[5] * 10e2) / 10e2))),
       text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[5] * 10e2) / 10e2))),
@@ -1298,7 +1303,8 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[5] * 10e2) / 10e2)),
       line = -2,
       at = 99.6,
       cex = 0.5)
-mtext(bquote(paste("p-value = ", .(ph2))),
+mtext(# bquote(paste("p-value = ", .(ph2))),
+      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
       side = 3,
       line = -3,
       at = 99.6,
@@ -1314,7 +1320,8 @@ plot(x = dat5$ANI,
      # yaxs = "i",
      col = "#11111133")
 ph1 <- lm(formula = abs(abs_is - found_ref_is) / total_genes ~ ANI, data = dat5)
-ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
+ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
+# ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[2] * 10e2) / 10e2))),
       text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[2] * 10e2) / 10e2))),
@@ -1327,7 +1334,8 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[2] * 10e2) / 10e2)),
       line = -3,
       at = 99.5,
       cex = 0.5)
-mtext(bquote(paste("p-value = ", .(ph2))),
+mtext(# bquote(paste("p-value = ", .(ph2))),
+      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
       side = 3,
       line = -4,
       at = 99.5,
@@ -1343,7 +1351,8 @@ plot(x = dat5$ANI,
      # yaxs = "i",
      col = "#11111133")
 ph1 <- lm(formula = fragment ~ ANI, data = dat5)
-ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
+ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
+# ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[4] * 10e3) / 10e3))),
       text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[4] * 10e3) / 10e3))),
@@ -1356,7 +1365,8 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[4] * 10e2) / 10e2)),
       line = -2,
       at = 99.5,
       cex = 0.5)
-mtext(bquote(paste("p-value = ", .(ph2))),
+mtext(# bquote(paste("p-value = ", .(ph2))),
+      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
       side = 3,
       line = -3,
       at = 99.5,
@@ -1371,7 +1381,8 @@ plot(x = dat5$ANI,
      # yaxs = "i",
      col = "#11111133")
 ph1 <- lm(formula = D ~ ANI, data = dat5)
-ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
+ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
+# ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[6] * 10e2) / 10e2))),
       text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[6] * 10e2) / 10e2))),
@@ -1384,7 +1395,8 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[6] * 10e2) / 10e2)),
       line = -2,
       at = 99.6,
       cex = 0.5)
-mtext(bquote(paste("p-value = ", .(ph2))),
+mtext(# bquote(paste("p-value = ", .(ph2))),
+      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
       side = 3,
       line = -3,
       at = 99.6,
@@ -1655,7 +1667,11 @@ adjustedtab <- data.frame("FS_p_value" = alltabs[, 1],
                           "IS_p_value" = alltabs[, 3],
                           "Counts" = alltabs[, 5],
                           "sub. choice" = c(row.names(newtabs[[1]]),
-                                            row.names(newtabs[[2]]),
+                                            c("ILLUMINA 1x + CLC",
+                                              "ILLUMINA 1x + Abyss",
+                                              "ILLUMINA >= 2x + CLC",
+                                              "ILLUMINA 1x + Skesa",
+                                              "ILLUMINA 1x + Unicycler"),
                                             c("ILLUMINA 1x + Unicycler",
                                               "ILLUMINA ONT + Unicycler",
                                               "ILLUMINA 1x + Shovill",
@@ -1675,7 +1691,7 @@ kable(adjustedtab)
 ```
 
 # Table S1: Pseudogene distributions by submitter choices
-The dominant submitter combination in all cases was SPAdes and a single set of Illumina reads. The five accompanying plotted minor distributions for each panel in **Fig. S2** were compared against the major distribution for that species with the KS test, recording the p-value for both frameshifts and internal stops, along with the distribution counts.
+The dominant submitter combination in all cases was SPAdes and a single set of Illumina reads. The five accompanying plotted minor distributions for each panel in **Fig. S2** were compared against the major distribution for that species with the Kolmogorov-Smirnov test, recording the p-value for both frameshifts (FS) and internal stops (IS), along with the distribution counts.
 
 ```{r, e-coli-distribution-table, include = FALSE, echo = FALSE}
 

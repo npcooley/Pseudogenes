@@ -2,9 +2,8 @@ Plots and Scripts for: Many purported pseudogenes in bacterial genomes
 are bonafide genes
 ================
 Nicholas P. Cooley, Department of Biomedical Informatics, University of
-PittsburghErik S. Wright, Department of Biomedical Informatics,
-University of Pittsburgh
-2023-09-15
+Pittsburgh
+2023-09-18
 
 # Pseudogenes!
 
@@ -12,9 +11,14 @@ This github repo contains data and scripts necessary to recreate the
 plots present in the manuscript in progress **Many purported pseudogenes
 in bacterial genomes are bonafide genes**. The data present in this repo
 are mostly lightweight summary tables capable of fitting within github
-size restrictions, while the large scale data analysis results will be
-deposited on zenodo. Some summary data that pulls form these tables will
-also be placed on zenodo as it exceeded github file size limits
+size restrictions. Scripts used to generate large initial data sets on
+the Open Science Grid are currently in the process of being added to
+this repo, while those data sets themselves are in the process of being
+deposited on zenodo. Summary data that is too large for github, but
+necessary to knit this README and it’s associated figures is enumerated
+in the `.gitignore` file for this repo and also present on
+[Zenodo](https://zenodo.org/record/8356318) under the DOI
+10.5281/zenodo.8356318.
 
 Pseudogenes can represent one of at least three separate phenomena in
 assembled genomes, 1) recent evolutionary changes that can serve as an
@@ -22,26 +26,31 @@ observational marker of how pressure is affecting functions and tools
 within a genome, 2) an error introduced into an assembly via error modes
 inherent to the sequencing platform or the assembly process, or 3) an
 inaccurate annotation of a programmed frameshift or non-canonical amino
-acid inclusion in lieu of a stop codon. Without clear confirmation such
-as Sanger sequencing, it can be unclear which of these options any
+acid inclusion in lieu of a stop codon. Without confirmation such as
+Sanger sequencing, it can be unclear which of these options any
 individual pseudogene actually represents. The wide variety of platform
-and assembler choices available to scientists additionally introduces
-the possibility for stochasticity in the rates at which pseudogenes are
-`TRUE` and `FALSE` depending on the combination of choices made in data
-collection and generation.
+and assembler choices available to data submitters additionally
+introduces the possibility for stochasticity in the rates at which
+pseudogenes are `TRUE` or `FALSE` depending on the combination of
+choices made in data collection and generation.
 
-It would take an enormous effort to wholesale sanger sequence every
-pseudogene present in RefSeq or Genbank. It is likely not even possible,
-nor is it clear that that type of experiment is necessary. However, some
+It would take an enormous effort to wholesale sanger sequence even a
+modest number of the pseudogenes present in RefSeq or Genbank. It is not
+even clear that that type of experiment is necessary. However, some
 interrogations of the diverse data present in RefSeq, GenBank, and the
 SRA are possible, and potentially useful. Metadata can be scraped from
 the SRA and we can generate direct observations of how relative counts
 of pseudogenes are related to extractable pieces of data, such as
-reported assembler, platforms for available SRA runs, submission year,
-reported assembly status, Contig N50 over total length, and genus. These
-direct observations can be coupled with causal inference via Tetrad to
-predict any causal links between metadata categories and relative
-pseudogene counts.
+reported assembler, platforms (sequencing technology) for available SRA
+runs, submission year, reported assembly status, contig N50 over total
+length, and genus. These direct observations can be coupled with causal
+inference via Tetrad to predict causal links between metadata categories
+and relative pseudogene counts.
+
+We can additionally reassemble available reads under a variety of
+conditions, and assemble reads simulated under varying coverages and
+qualities to interrogate factors that can affect the pseudogene content
+of finished assemblies.
 
 ### Figure 1:
 

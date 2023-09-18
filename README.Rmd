@@ -2,7 +2,6 @@
 title: "Plots and Scripts for: Many purported pseudogenes in bacterial genomes are bonafide genes"
 author: 
   - Nicholas P. Cooley, Department of Biomedical Informatics, University of Pittsburgh
-  - Erik S. Wright, Department of Biomedical Informatics, University of Pittsburgh
 date: "`r Sys.Date()`"
 output:
   github_document: default
@@ -16,11 +15,13 @@ knit: (function(inputFile, encoding) {
 
 # Pseudogenes!
 
-This github repo contains data and scripts necessary to recreate the plots present in the manuscript in progress **Many purported pseudogenes in bacterial genomes are bonafide genes**. The data present in this repo are mostly lightweight summary tables capable of fitting within github size restrictions, while the large scale data analysis results will be deposited on zenodo. Some summary data that pulls form these tables will also be placed on zenodo as it exceeded github file size limits
+This github repo contains data and scripts necessary to recreate the plots present in the manuscript in progress **Many purported pseudogenes in bacterial genomes are bonafide genes**. The data present in this repo are mostly lightweight summary tables capable of fitting within github size restrictions. Scripts used to generate large initial data sets on the Open Science Grid are currently in the process of being added to this repo, while those data sets themselves are in the process of being deposited on zenodo. Summary data that is too large for github, but necessary to knit this README and it's associated figures is enumerated in the `.gitignore` file for this repo and also present on [Zenodo](https://zenodo.org/record/8356318) under the DOI 10.5281/zenodo.8356318.
 
-Pseudogenes can represent one of at least three separate phenomena in assembled genomes, 1) recent evolutionary changes that can serve as an observational marker of how pressure is affecting functions and tools within a genome, 2) an error introduced into an assembly via error modes inherent to the sequencing platform or the assembly process, or 3) an inaccurate annotation of a programmed frameshift or non-canonical amino acid inclusion in lieu of a stop codon. Without clear confirmation such as Sanger sequencing, it can be unclear which of these options any individual pseudogene actually represents. The wide variety of platform and assembler choices available to scientists additionally introduces the possibility for stochasticity in the rates at which pseudogenes are `TRUE` and `FALSE` depending on the combination of choices made in data collection and generation.
+Pseudogenes can represent one of at least three separate phenomena in assembled genomes, 1) recent evolutionary changes that can serve as an observational marker of how pressure is affecting functions and tools within a genome, 2) an error introduced into an assembly via error modes inherent to the sequencing platform or the assembly process, or 3) an inaccurate annotation of a programmed frameshift or non-canonical amino acid inclusion in lieu of a stop codon. Without confirmation such as Sanger sequencing, it can be unclear which of these options any individual pseudogene actually represents. The wide variety of platform and assembler choices available to data submitters additionally introduces the possibility for stochasticity in the rates at which pseudogenes are `TRUE` or `FALSE` depending on the combination of choices made in data collection and generation.
 
-It would take an enormous effort to wholesale sanger sequence every pseudogene present in RefSeq or Genbank. It is likely not even possible, nor is it clear that that type of experiment is necessary. However, some interrogations of the diverse data present in RefSeq, GenBank, and the SRA are possible, and potentially useful. Metadata can be scraped from the SRA and we can generate direct observations of how relative counts of pseudogenes are related to extractable pieces of data, such as reported assembler, platforms for available SRA runs, submission year, reported assembly status, Contig N50 over total length, and genus. These direct observations can be coupled with causal inference via Tetrad to predict any causal links between metadata categories and relative pseudogene counts.
+It would take an enormous effort to wholesale sanger sequence even a modest number of the pseudogenes present in RefSeq or Genbank. It is not even clear that that type of experiment is necessary. However, some interrogations of the diverse data present in RefSeq, GenBank, and the SRA are possible, and potentially useful. Metadata can be scraped from the SRA and we can generate direct observations of how relative counts of pseudogenes are related to extractable pieces of data, such as reported assembler, platforms (sequencing technology) for available SRA runs, submission year, reported assembly status, contig N50 over total length, and genus. These direct observations can be coupled with causal inference via Tetrad to predict causal links between metadata categories and relative pseudogene counts.
+
+We can additionally reassemble available reads under a variety of conditions, and assemble reads simulated under varying coverages and qualities to interrogate factors that can affect the pseudogene content of finished assemblies.
 
 ```{r libraries, include = TRUE, echo = FALSE}
 # Libraries
@@ -383,7 +384,7 @@ plot(y = dat3$Incongruent_FS_Pairs[wx] / (dat3$Congruent_FS_Pairs[wx] + dat3$Inc
      xlim = c(95, 100),
      col = ColVec2[1L],
      xlab = "",
-     ylab = "Incongruent frameshifts",
+     ylab = "Incongruent frameshifts (%)",
      xaxs = "i",
      yaxs = "i",
      yaxt = "n",
@@ -395,8 +396,7 @@ yaxisseq <- seq(from = 0,
                 by = 0.2)
 axis(side = 2,
      at = yaxisseq,
-     labels = paste0(yaxisseq * 100,
-                     "%"))
+     labels = paste0(yaxisseq * 100))
 points(x = c(95.25, 95.6, 96.05),
        y = c(.1, .1, .1),
        cex = sort(c(range(val_cex),
@@ -412,7 +412,7 @@ text(x = c(95.25, 95.6, 96.05),
 rect(xleft = 95.1,
      ybottom = 0.0275,
      ytop = .28,
-     xright = 96.3,
+     xright = 96.5,
      col = NULL)
 # xaxisseq <- seq(from = 95,
 #                 to = 100,
@@ -507,7 +507,7 @@ plot(x = dat3$ANI[wx],
      xlab = "Average Nucleotide Identity (%)",
      xlim = c(95, 100),
      y = dat3$Incongruent_IS_Pairs[wx] / (dat3$Congruent_IS_Pairs[wx] + dat3$Incongruent_IS_Pairs[wx]),
-     ylab = "Incongruent internal stops",
+     ylab = "Incongruent internal stops (%)",
      ylim = c(0, 1),
      pch = 16,
      xaxs = "i",
@@ -522,8 +522,7 @@ yaxisseq <- seq(from = 0,
                 by = .2)
 axis(side = 2,
      at = yaxisseq,
-     labels = paste0(yaxisseq * 100,
-                     "%"))
+     labels = paste0(yaxisseq * 100))
 points(x = c(95.25, 95.6, 96.05),
        y = c(.1, .1, .1),
        cex = sort(c(range(val_cex),
@@ -539,7 +538,7 @@ text(x = c(95.25, 95.6, 96.05),
 rect(xleft = 95.1,
      ybottom = 0.0275,
      ytop = .28,
-     xright = 96.3,
+     xright = 96.5,
      col = NULL)
 spfit1 <- smooth.spline(x = dat3$ANI[wx],
                         y = (dat3$Incongruent_IS_Pairs[wx] / (dat3$Incongruent_IS_Pairs[wx] + dat3$Congruent_IS_Pairs[wx])),
@@ -1333,16 +1332,16 @@ for (m1 in seq_along(s7)) {
 }
 legend("topleft",
        legend = c("All Genbank",
-                  "Genbank w/ SRA reads",
-                  "Genbank w/ SRA w/ Illumina",
-                  "Genbank w/ SRA w/ HiSeq 2500",
-                  "Genbank w/ SRA w/ HiSeq X",
-                  "Genbank w/ SRA w/ MiSeq"),
+                  "Genbank w/SRA reads",
+                  "Genbank w/SRA w/Illumina",
+                  "Genbank w/SRA w/HiSeq 2500",
+                  "Genbank w/SRA w/HiSeq X",
+                  "Genbank w/SRA w/MiSeq"),
        lty = 1,
        col = ColVec1[seq_len(7)],
        bty = "n",
        bg = NA,
-       cex = 0.85)
+       cex = 0.75)
 par(mar = c(2,3,2,1),
     mgp = c(1.75, 0.75, 0),
     cex.lab = 1,
