@@ -52,6 +52,11 @@ conditions, and assemble reads simulated under varying coverages and
 qualities to interrogate factors that can affect the pseudogene content
 of finished assemblies.
 
+PNGs of the manuscript figures are embedded in this document below,
+while better quality PDFs are included in the the
+`README_files/figure-gfm/` folder of this repo. Context for these will
+be added while this repo is fleshed out.
+
 ### Figure 1:
 
     # 
