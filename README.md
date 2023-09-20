@@ -3,22 +3,24 @@ are bonafide genes
 ================
 Nicholas P. Cooley, Department of Biomedical Informatics, University of
 Pittsburgh
-2023-09-18
+2023-09-20
 
 # Pseudogenes!
 
 This github repo contains data and scripts necessary to recreate the
-plots present in the manuscript in progress **Many purported pseudogenes
-in bacterial genomes are bonafide genes**. The data present in this repo
+plots present in the manuscript **Many purported pseudogenes in
+bacterial genomes are bonafide genes**. The data present in this repo
 are mostly lightweight summary tables capable of fitting within github
 size restrictions. Scripts used to generate large initial data sets on
 the Open Science Grid are present in the `OSG_Jobs` folder, while the
 data sets generated from those jobs are in the process of being
-deposited on zenodo. Summary data that is too large for github, but
-necessary to knit this README and it’s associated figures are enumerated
-in the `.gitignore` file for this repo and also present on
-[Zenodo](https://zenodo.org/record/8356318) under the DOI
-10.5281/zenodo.8356318.
+deposited on zenodo, current DOIs include:
+[10.5281/zenodo.8360505](https://zenodo.org/record/8360505) and
+[10.5281/zenodo.8361514](https://zenodo.org/record/8361514). Summary
+data that is too large for github, but necessary to knit this README and
+it’s associated figures are enumerated in the `.gitignore` file for this
+repo and also present on [Zenodo](https://zenodo.org/record/8356318)
+under the DOI 10.5281/zenodo.8356318.
 
 Pseudogenes can represent one of at least three separate phenomena in
 assembled genomes, 1) recent evolutionary changes that can serve as an
