@@ -3,7 +3,7 @@ are bonafide genes
 ================
 Nicholas P. Cooley, Department of Biomedical Informatics, University of
 Pittsburgh
-2023-09-20
+2023-09-26
 
 # Pseudogenes!
 
@@ -13,28 +13,37 @@ bacterial genomes are bonafide genes**. The data present in this repo
 are mostly lightweight summary tables capable of fitting within github
 size restrictions. Scripts used to generate large initial data sets on
 the Open Science Grid are present in the `OSG_Jobs` folder, while the
-data sets generated from those jobs are in the process of being
-deposited on zenodo, current DOIs include:
-[10.5281/zenodo.8360505](https://zenodo.org/record/8360505) and
-[10.5281/zenodo.8361514](https://zenodo.org/record/8361514). Summary
-data that is too large for github, but necessary to knit this README and
-it’s associated figures are enumerated in the `.gitignore` file for this
-repo and also present on [Zenodo](https://zenodo.org/record/8356318)
-under the DOI 10.5281/zenodo.8356318.
+data sets generated from those jobs have been deposited on zenodo under
+the following DOIs:
 
-Pseudogenes can represent one of at least three separate phenomena in
-assembled genomes, 1) recent evolutionary changes that can serve as an
-observational marker of how pressure is affecting functions and tools
-within a genome, 2) an error introduced into an assembly via error modes
-inherent to the sequencing platform or the assembly process, or 3) an
-inaccurate annotation of a programmed frameshift or non-canonical amino
-acid inclusion in lieu of a stop codon. Without confirmation such as
-Sanger sequencing, it can be unclear which of these options any
-individual pseudogene actually represents. The wide variety of platform
-and assembler choices available to data submitters additionally
-introduces the possibility for stochasticity in the rates at which
-pseudogenes are `TRUE` or `FALSE` depending on the combination of
-choices made in data collection and generation.
+- [10.5281/zenodo.8360505](https://zenodo.org/record/8360505) -
+  Assemblies generated Figure 3 in this repo.
+- [10.5281/zenodo.8361514](https://zenodo.org/record/8361514) -
+  Annotations and parsed data for Figure 3 in this repo.
+- [10.5281/zenodo.8356318](https://zenodo.org/record/8356318) - Summary
+  data that is too large for github, but necessary to knit this README
+  and it’s associated figures, enumerated in the `.gitignore` file for
+  this repo.
+- [10.5281/zenodo.8366931](https://zenodo.org/record/8366931) -
+  Assemblies generated for Figure 4 in this repo.
+- [10.5281/zenodo.8378433](https://zenodo.org/record/8378433) -
+  Annotations and parsed data for Figure 4 in this repo, as well as
+  assemblies annotations and parsed data for Figure 5 in this repo.
+
+Pseudogenizations due to internal stops or frameshifts can represent one
+of at least three separate phenomena in assembled genomes, 1) recent
+evolutionary changes that can serve as an observational marker of how
+pressure is affecting functions and tools within a genome, 2) an error
+introduced into an assembly via error modes inherent to the sequencing
+platform or the assembly process, or 3) an inaccurate annotation of a
+programmed frameshift or non-canonical amino acid inclusion in lieu of a
+stop codon. Without confirmation such as Sanger sequencing, it can be
+unclear which of these options any individual pseudogene actually
+represents. The wide variety of platform and assembler choices available
+to data submitters additionally introduces the possibility for
+stochasticity in the rates at which pseudogenes are `TRUE` or `FALSE`
+depending on the combination of choices made in data collection and
+generation.
 
 It would take an enormous effort to wholesale sanger sequence even a
 modest number of the pseudogenes present in RefSeq or Genbank. It is not
@@ -56,8 +65,7 @@ of finished assemblies.
 
 PNGs of the manuscript figures are embedded in this document below,
 while better quality PDFs are included in the the
-`README_files/figure-gfm/` folder of this repo. Context for these will
-be added while this repo is fleshed out.
+`README_files/figure-gfm/` folder of this repo.
 
 ### Figure 1:
 

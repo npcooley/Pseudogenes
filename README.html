@@ -11,7 +11,7 @@
 
 <meta name="author" content="Nicholas P. Cooley, Department of Biomedical Informatics, University of Pittsburgh" />
 
-<meta name="date" content="2023-09-20" />
+<meta name="date" content="2023-09-26" />
 
 <title>Plots and Scripts for: Many purported pseudogenes in bacterial genomes are bonafide genes</title>
 
@@ -354,7 +354,7 @@ display: none;
 pseudogenes in bacterial genomes are bonafide genes</h1>
 <h4 class="author">Nicholas P. Cooley, Department of Biomedical
 Informatics, University of Pittsburgh</h4>
-<h4 class="date">2023-09-20</h4>
+<h4 class="date">2023-09-26</h4>
 
 </div>
 
@@ -367,26 +367,37 @@ bacterial genomes are bonafide genes</strong>. The data present in this
 repo are mostly lightweight summary tables capable of fitting within
 github size restrictions. Scripts used to generate large initial data
 sets on the Open Science Grid are present in the <code>OSG_Jobs</code>
-folder, while the data sets generated from those jobs are in the process
-of being deposited on zenodo, current DOIs include: <a href="https://zenodo.org/record/8360505">10.5281/zenodo.8360505</a> and
-<a href="https://zenodo.org/record/8361514">10.5281/zenodo.8361514</a>.
+folder, while the data sets generated from those jobs have been
+deposited on zenodo under the following DOIs:</p>
+<ul>
+<li><a href="https://zenodo.org/record/8360505">10.5281/zenodo.8360505</a> -
+Assemblies generated Figure 3 in this repo.</li>
+<li><a href="https://zenodo.org/record/8361514">10.5281/zenodo.8361514</a> -
+Annotations and parsed data for Figure 3 in this repo.</li>
+<li><a href="https://zenodo.org/record/8356318">10.5281/zenodo.8356318</a> -
 Summary data that is too large for github, but necessary to knit this
-README and it’s associated figures are enumerated in the
-<code>.gitignore</code> file for this repo and also present on <a href="https://zenodo.org/record/8356318">Zenodo</a> under the DOI
-10.5281/zenodo.8356318.</p>
-<p>Pseudogenes can represent one of at least three separate phenomena in
-assembled genomes, 1) recent evolutionary changes that can serve as an
-observational marker of how pressure is affecting functions and tools
-within a genome, 2) an error introduced into an assembly via error modes
-inherent to the sequencing platform or the assembly process, or 3) an
-inaccurate annotation of a programmed frameshift or non-canonical amino
-acid inclusion in lieu of a stop codon. Without confirmation such as
-Sanger sequencing, it can be unclear which of these options any
-individual pseudogene actually represents. The wide variety of platform
-and assembler choices available to data submitters additionally
-introduces the possibility for stochasticity in the rates at which
-pseudogenes are <code>TRUE</code> or <code>FALSE</code> depending on the
-combination of choices made in data collection and generation.</p>
+README and it’s associated figures, enumerated in the
+<code>.gitignore</code> file for this repo.</li>
+<li><a href="https://zenodo.org/record/8366931">10.5281/zenodo.8366931</a> -
+Assemblies generated for Figure 4 in this repo.</li>
+<li><a href="https://zenodo.org/record/8378433">10.5281/zenodo.8378433</a> -
+Annotations and parsed data for Figure 4 in this repo, as well as
+assemblies annotations and parsed data for Figure 5 in this repo.</li>
+</ul>
+<p>Pseudogenizations due to internal stops or frameshifts can represent
+one of at least three separate phenomena in assembled genomes, 1) recent
+evolutionary changes that can serve as an observational marker of how
+pressure is affecting functions and tools within a genome, 2) an error
+introduced into an assembly via error modes inherent to the sequencing
+platform or the assembly process, or 3) an inaccurate annotation of a
+programmed frameshift or non-canonical amino acid inclusion in lieu of a
+stop codon. Without confirmation such as Sanger sequencing, it can be
+unclear which of these options any individual pseudogene actually
+represents. The wide variety of platform and assembler choices available
+to data submitters additionally introduces the possibility for
+stochasticity in the rates at which pseudogenes are <code>TRUE</code> or
+<code>FALSE</code> depending on the combination of choices made in data
+collection and generation.</p>
 <p>It would take an enormous effort to wholesale sanger sequence even a
 modest number of the pseudogenes present in RefSeq or Genbank. It is not
 even clear that that type of experiment is necessary. However, some
@@ -405,8 +416,7 @@ qualities to interrogate factors that can affect the pseudogene content
 of finished assemblies.</p>
 <p>PNGs of the manuscript figures are embedded in this document below,
 while better quality PDFs are included in the the
-<code>README_files/figure-gfm/</code> folder of this repo. Context for
-these will be added while this repo is fleshed out.</p>
+<code>README_files/figure-gfm/</code> folder of this repo.</p>
 <div id="figure-1" class="section level3">
 <h3>Figure 1:</h3>
 <pre><code># 
