@@ -876,11 +876,11 @@ color.bar(lut = ColVectorRamp,
 ```
 
 # Figure S3: Fitted model coefficients for assemblies from simulated *E. coli* reads
-Coefficients for modeled intercept, coverage, and quality for combinations of simulated Illumina sequencing model and assembler. Each cell is divided diagonally with the upper diagonal representing paired end reads, and the lower diagonal representing single end reads. Coefficients with a Bonferonni corrected p-value < 0.01 are appended with an asterisk (\*) in the cell bisect. The logistic regression coefficients give the change in log odds of the number of pseudogenes per assembly given a unit increase in the fold coverage or Q score.
+Coefficients for modeled intercept, coverage, and quality for combinations of simulated Illumina sequencing model and assembler. Each cell is divided diagonally with the upper diagonal representing paired end reads, and the lower diagonal representing single end reads. Coefficients with a Bonferonni corrected p-value < 0.01 are appended with an asterisk (\*) in the cell bisect. The logistic regression coefficients give the change in log odds of the number of pseudogenes per assembly given a unit increase in the fold coverage or Q-score.
 
 \newpage
 
-```{r, fitted model behavior for quality scores, include = TRUE, echo = FALSE}
+```{r, fitted-model-behavior-for-quality-scores, include = TRUE, echo = FALSE}
 #| fig.width = 3.5, fig.height = 7, fig.align = "center"
 load(file = "InputData/SimulatedEcoliStats.RData",
      verbose = FALSE)
@@ -1153,12 +1153,188 @@ for (m1 in seq_len(nrow(is_vals05))) {
 }
 ```
 
-# Figure S4: Modeled behavior of assemblies from simulated reads
+# Figure S4: Modeled behavior of assemblies from simulated reads by average quality score
 Predicted models for the absolute difference in frameshifts (top) and internal stops (bottom) per Mbp from a source genome for assemblies generated from simulated reads as average quality scores vary for an array of sequencing platforms and assemblers. Results present are at a fixed coverage of 50-fold.
 
 \newpage
 
-```{r, relative event correlations 1, include = TRUE, echo = FALSE}
+```{r, single-end-model-behavior, include = TRUE, echo = FALSE}
+# frameshifts
+layout(mat = matrix(data = 1:4,
+                    ncol = 2L))
+# single end frameshifts for fold coverage
+par(mar = c(1, 3, 3.5, 0),
+    mgp = c(2, 0.75, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1)
+suppressWarnings(plot(x = 0,
+                      y = 0,
+                      type = "n",
+                      xlim = c(5, 500),
+                      ylim = c(0, 5),
+                      xaxs = "i",
+                      # yaxs = "i",
+                      xlab = "",
+                      ylab = expression("|"*Delta*" Frameshifts per Mbp|"),
+                      log = "x"))
+for (m1 in seq_len(nrow(fs_vals06))) {
+  for (m2 in seq_len(ncol(fs_vals06) / 3L)) {
+    c1 <- predictResponse(coef = fs_vals06[m1, c(m2, m2 + 3L, m2 + 6L)],
+                          COV = cov_set,
+                          QUAL = 0,
+                          TOT_GENE = tot_genes,
+                          TOT_NT = tot_nts)
+    c2 <- convertCoverage(cov = cov_set)
+    lines(x = c2,
+          y = c1,
+          col = ColVec1[m1],
+          lty = m2)
+  }
+}
+# single end internal stops for fold coverage
+par(mar = c(3, 3, 1.5, 0),
+    mgp = c(2, 0.75, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1)
+suppressWarnings(plot(x = 0,
+                      y = 0,
+                      type = "n",
+                      xlim = c(5, 500),
+                      ylim = c(0, 5),
+                      xaxs = "i",
+                      # yaxs = "i",
+                      xlab = "Fold Coverage",
+                      ylab = expression("|"*Delta*" Internal stops per Mbp|"),
+                      log = "x"))
+for (m1 in seq_len(nrow(is_vals06))) {
+  for (m2 in seq_len(ncol(is_vals06) / 3L)) {
+    c1 <- predictResponse(coef = is_vals06[m1, c(m2, m2 + 3L, m2 + 6L)],
+                          COV = cov_set,
+                          QUAL = 0,
+                          TOT_GENE = tot_genes,
+                          TOT_NT = tot_nts)
+    c2 <- convertCoverage(cov = cov_set)
+    lines(x = c2,
+          y = c1,
+          col = ColVec1[m1],
+          lty = m2)
+  }
+}
+
+# single end frameshifts for average q-score
+par(mar = c(1, 2, 3.5, 1),
+    mgp = c(2, 0.75, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1)
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlim = c(30, 40),
+     ylim = c(0, 5),
+     xlab = "Average Q-score",
+     yaxt = "n",
+     # ylab = expression("|"*Delta*" Frameshifts per MB|"),
+     ylab = "",
+     xaxs = "i")
+for (m1 in seq_len(nrow(fs_vals06))) {
+  for (m2 in seq_len(ncol(fs_vals06) / 3L)) {
+    c1 <- predictResponse(coef = fs_vals06[m1, c(m2, m2 + 3L, m2 + 6L)],
+                          COV = 0,
+                          QUAL = qual_set,
+                          TOT_GENE = tot_genes,
+                          TOT_NT = tot_nts)
+    c2 <- convertQuality(qual = qual_set)
+    lines(x = c2,
+          y = c1,
+          col = ColVec1[m1],
+          lty = m2)
+  }
+}
+L <- legend(x = 32,
+            y = 3.7,
+            legend = rep(NA, 18),
+            col = rep(ColVec1[seq_len(6)],
+                      3L),
+            lty = c(rep(1, 6),
+                    rep(2, 6),
+                    rep(3, 6)),
+            pch = rep(NA, 18),
+            ncol = 3L,
+            bty = 'n',
+            x.intersp = 0.5,
+            inset = 0.02,
+            cex = 0.75)
+legend(x = 32,
+       y = 3.7,
+       legend = c("MEGAHIT",
+                  "SKESA",
+                  "SPAdes",
+                  "Unicycler",
+                  "Unicycler + ONT",
+                  "Unicycler + PB"),
+       # col = rep(NA, 6),
+       # lty = rep(NA, 6),
+       ncol = 1,
+       x.intersp = 7.5,
+       bg = NA,
+       bty = "n",
+       cex = 0.75)
+text(x = c(32, 33, 34),
+     y = 3.725,
+     pos = 4,
+     xpd = TRUE,
+     cex = 0.75,
+     labels = rep(c("HiSeq 2500",
+                    "HiSeq X",
+                    "MiSeq v3"),
+                  3L),
+     srt = 45,
+     adj = 0)
+# single end internal stops for average q-score
+par(mar = c(3, 2, 1.5, 1),
+    mgp = c(2, 0.75, 0),
+    cex.lab = 1,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1)
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlim = c(30, 40),
+     ylim = c(0, 5),
+     xlab = "Average Q-score",
+     yaxt = "n",
+     # ylab = expression("|"*Delta*" Internal stops per MB|"),
+     ylab = "",
+     xaxs = "i")
+for (m1 in seq_len(nrow(is_vals06))) {
+  for (m2 in seq_len(ncol(is_vals06) / 3L)) {
+    c1 <- predictResponse(coef = is_vals06[m1, c(m2, m2 + 3L, m2 + 6L)],
+                          COV = 0,
+                          QUAL = qual_set,
+                          TOT_GENE = tot_genes,
+                          TOT_NT = tot_nts)
+    c2 <- convertQuality(qual = qual_set)
+    lines(x = c2,
+          y = c1,
+          col = ColVec1[m1],
+          lty = m2)
+  }
+}
+```
+
+# Figure S5: Modeled behavior of assemblies from simulated single end reads
+Predicted models for the absolute difference in frameshifts (top) and internal stops (bottom) per Mbp from a source genome for assemblies generated from simulated single end reads as coverage varies against a fixed quality score of 34 for the short reads (left) and as quality score varies against a fixed coverage of 50-fold for the short reads (right).
+
+\newpage
+
+```{r, relative-event-correlations-1, include = TRUE, echo = FALSE}
 load(file = "InputData/SimulatedEcoliANIResults.RData",
      verbose = FALSE)
 load(file = "InputData/SimulatedEcoliStats_v3.RData",
@@ -1404,10 +1580,10 @@ mtext(# bquote(paste("p-value = ", .(ph2))),
 
 ```
 
-# Figure S5: Average Nucleotide Identity (ANI) correlations with assembly measures
-ANI is shown versus extractable statistics about the assemblies generated from simulated *E. coli* reads. ANI versus the absolute difference between the relative frameshifts per Mbp of the generated assembly and the reference assembly (top left). ANI versus the absolute difference between the relative internal stops per Mbp of the generated assembly and the reference assembly (top right). ANI versus the total number of contigs (middle left). ANI versus the contig N50 normalized to total nucleotides in the generated assembly (middle right). ANI versus the Kolmogorov-Smirnov test p-value (bottom left). ANI versus the Kolmogorov-Smirnov test D-statistic (bottom right). Coefficient of determination, spearman's rho, and p-value of the fitted slope being significant are included in each panel.
+# Figure S6: Average Nucleotide Identity (ANI) correlations with assembly measures
+ANI is shown versus extractable statistics about the assemblies generated from simulated *E. coli* reads. ANI versus the absolute difference between the relative frameshifts per Mbp of the generated assembly and the reference assembly (top left). ANI versus the absolute difference between the relative internal stops per Mbp of the generated assembly and the reference assembly (top right). ANI versus the total number of contigs in the generated assembly (middle left). ANI versus the contig N50 normalized to total nucleotides in the generated assembly (middle right). ANI versus the Kolmogorov-Smirnov test p-value when testing the distribution of CDS lengths for the generated assembly against the distribution of CDS lengths for the source assembly (bottom left). ANI versus the Kolmogorov-Smirnov test D-statistic when testing the distribution of CDS lengths for the generated assembly against the distribution of CDS lengths for the source assembly (bottom right). Coefficient of determination, spearman's rho, and p-value of the fitted slope being significant are included in each panel.
 
-```{r, plot mappings 1 table, include = FALSE, echo = FALSE}
+```{r, plot-mappings-1-table, include = FALSE, echo = FALSE}
 # dropped per erik's ask
 # Table S1: GCF_001593565.1 Mapping Types
 s1 <- nchar(featuretypes) > 0
