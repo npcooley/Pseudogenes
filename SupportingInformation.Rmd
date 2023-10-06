@@ -1424,12 +1424,22 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[1] * 10e2) / 10e2)),
 #   line = -3,
 #   at = 99.8,
 #   cex = 0.5)
-mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
+if (ph2 > 1e-10) {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
   text = paste("p-value = ", format(ph2, digits = 3)),
   side = 3,
   line = -3,
   at = 99.8,
   cex = 0.5)
+} else {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
+  text = paste("p-value < ", format(1e-10, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.8,
+  cex = 0.5)
+}
+
 par(mar = c(3,4,2,1.5),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1461,12 +1471,21 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[3] * 10e2) / 10e2)),
 #   line = -3,
 #   at = 99.6,
 #   cex = 0.5)
-mtext(# bquote(paste("p-value = ", .(ph2))),
+if (ph2 > 1e-10) {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
   text = paste("p-value = ", format(ph2, digits = 3)),
   side = 3,
   line = -3,
-  at = 99.6,
+  at = 99.8,
   cex = 0.5)
+} else {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
+  text = paste("p-value < ", format(1e-10, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.8,
+  cex = 0.5)
+}
 par(mar = c(4,4,1,1.5),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1497,12 +1516,21 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[5] * 10e2) / 10e2)),
 #   line = -3,
 #   at = 99.6,
 #   cex = 0.5)
-mtext(# bquote(paste("p-value = ", .(ph2))),
+if (ph2 > 1e-10) {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
   text = paste("p-value = ", format(ph2, digits = 3)),
   side = 3,
   line = -3,
-  at = 99.6,
+  at = 99.8,
   cex = 0.5)
+} else {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
+  text = paste("p-value < ", format(1e-10, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.8,
+  cex = 0.5)
+}
 par(mar = c(2,3.5,3,2),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1534,12 +1562,21 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[2] * 10e2) / 10e2)),
 #   line = -4,
 #   at = 99.5,
 #   cex = 0.5)
-mtext(# bquote(paste("p-value = ", .(ph2))),
+if (ph2 > 1e-10) {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
   text = paste("p-value = ", format(ph2, digits = 3)),
   side = 3,
-  line = -4,
-  at = 99.5,
+  line = -3,
+  at = 99.8,
   cex = 0.5)
+} else {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
+  text = paste("p-value < ", format(1e-10, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.8,
+  cex = 0.5)
+}
 par(mar = c(3,3.5,2,2),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1571,12 +1608,21 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[4] * 10e2) / 10e2)),
 #   line = -3,
 #   at = 99.5,
 #   cex = 0.5)
-mtext(# bquote(paste("p-value = ", .(ph2))),
+if (ph2 > 1e-10) {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
   text = paste("p-value = ", format(ph2, digits = 3)),
   side = 3,
   line = -3,
-  at = 99.5,
+  at = 99.8,
   cex = 0.5)
+} else {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
+  text = paste("p-value < ", format(1e-10, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.8,
+  cex = 0.5)
+}
 par(mar = c(4,3.5,1,2),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1607,12 +1653,21 @@ mtext(text = bquote(rho == .(trunc(datx$ANI[6] * 10e2) / 10e2)),
 #   line = -3,
 #   at = 99.6,
 #   cex = 0.5)
-mtext(# bquote(paste("p-value = ", .(ph2))),
+if (ph2 > 1e-10) {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
   text = paste("p-value = ", format(ph2, digits = 3)),
   side = 3,
   line = -3,
-  at = 99.6,
+  at = 99.8,
   cex = 0.5)
+} else {
+  mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
+  text = paste("p-value < ", format(1e-10, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.8,
+  cex = 0.5)
+}
 ```
 
 # Figure S6: Average Nucleotide Identity (ANI) correlations with assembly measures
