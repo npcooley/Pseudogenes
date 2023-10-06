@@ -887,7 +887,7 @@ load(file = "InputData/SimulatedEcoliStats.RData",
 
 tot_genes <- 4379
 tot_nts <- 4641652
-cov_set <- seq(-1, 1, 0.01)
+cov_set <- seq(-1, 1.31, 0.01)
 qual_set <- seq(-4, 6, 0.01)
 
 # given coefficients, predict |delta pseudogenes| per Mbp
@@ -1172,7 +1172,7 @@ par(mar = c(1, 3, 3.5, 0),
 suppressWarnings(plot(x = 0,
                       y = 0,
                       type = "n",
-                      xlim = c(5, 500),
+                      xlim = c(5, 1000),
                       ylim = c(0, 5),
                       xaxs = "i",
                       # yaxs = "i",
@@ -1203,7 +1203,7 @@ par(mar = c(3, 3, 1.5, 0),
 suppressWarnings(plot(x = 0,
                       y = 0,
                       type = "n",
-                      xlim = c(5, 500),
+                      xlim = c(5, 1000),
                       ylim = c(0, 5),
                       xaxs = "i",
                       # yaxs = "i",
@@ -1408,22 +1408,28 @@ ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
 abline(ph1)
 # summary(lm(Y~X))$coefficients[2L, "Pr(>|t|)"]
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[1] * 10e2) / 10e2))),
-      text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[1] * 10e2) / 10e2))),
-      side = 3,
-      line = -1,
-      at = 99.8,
-      cex = 0.5)
+  text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[1] * 10e2) / 10e2))),
+  side = 3,
+  line = -1,
+  at = 99.8,
+  cex = 0.5)
 mtext(text = bquote(rho == .(trunc(datx$ANI[1] * 10e2) / 10e2)),
       side = 3,
       line = -2,
       at = 99.8,
       cex = 0.5)
+# mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
+#   text = paste("p-value = ", format(ph2, scientific = TRUE)),
+#   side = 3,
+#   line = -3,
+#   at = 99.8,
+#   cex = 0.5)
 mtext(# bquote(paste("p-value = ", .(format(ph2, scientific = TRUE, digits = 3)))),
-      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
-      side = 3,
-      line = -3,
-      at = 99.8,
-      cex = 0.5)
+  text = paste("p-value = ", format(ph2, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.8,
+  cex = 0.5)
 par(mar = c(3,4,2,1.5),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1439,22 +1445,28 @@ ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
 # ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[3] * 10e2) / 10e2))),
-      text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[3] * 10e2) / 10e2))),
-      side = 3,
-      line = -1,
-      at = 99.6,
-      cex = 0.5)
+  text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[3] * 10e2) / 10e2))),
+  side = 3,
+  line = -1,
+  at = 99.6,
+  cex = 0.5)
 mtext(text = bquote(rho == .(trunc(datx$ANI[3] * 10e2) / 10e2)),
       side = 3,
       line = -2,
       at = 99.6,
       cex = 0.5)
+# mtext(# bquote(paste("p-value = ", .(ph2))),
+#   text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
+#   side = 3,
+#   line = -3,
+#   at = 99.6,
+#   cex = 0.5)
 mtext(# bquote(paste("p-value = ", .(ph2))),
-      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
-      side = 3,
-      line = -3,
-      at = 99.6,
-      cex = 0.5)
+  text = paste("p-value = ", format(ph2, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.6,
+  cex = 0.5)
 par(mar = c(4,4,1,1.5),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1469,22 +1481,28 @@ ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
 # ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[5] * 10e2) / 10e2))),
-      text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[5] * 10e2) / 10e2))),
-      side = 3,
-      line = -1,
-      at = 99.6,
-      cex = 0.5)
+  text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[5] * 10e2) / 10e2))),
+  side = 3,
+  line = -1,
+  at = 99.6,
+  cex = 0.5)
 mtext(text = bquote(rho == .(trunc(datx$ANI[5] * 10e2) / 10e2)),
       side = 3,
       line = -2,
       at = 99.6,
       cex = 0.5)
+# mtext(# bquote(paste("p-value = ", .(ph2))),
+#   text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
+#   side = 3,
+#   line = -3,
+#   at = 99.6,
+#   cex = 0.5)
 mtext(# bquote(paste("p-value = ", .(ph2))),
-      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
-      side = 3,
-      line = -3,
-      at = 99.6,
-      cex = 0.5)
+  text = paste("p-value = ", format(ph2, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.6,
+  cex = 0.5)
 par(mar = c(2,3.5,3,2),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1500,22 +1518,28 @@ ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
 # ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[2] * 10e2) / 10e2))),
-      text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[2] * 10e2) / 10e2))),
-      side = 3,
-      line = -2,
-      at = 99.5,
-      cex = 0.5)
+  text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[2] * 10e2) / 10e2))),
+  side = 3,
+  line = -2,
+  at = 99.5,
+  cex = 0.5)
 mtext(text = bquote(rho == .(trunc(datx$ANI[2] * 10e2) / 10e2)),
       side = 3,
       line = -3,
       at = 99.5,
       cex = 0.5)
+# mtext(# bquote(paste("p-value = ", .(ph2))),
+#   text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
+#   side = 3,
+#   line = -4,
+#   at = 99.5,
+#   cex = 0.5)
 mtext(# bquote(paste("p-value = ", .(ph2))),
-      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
-      side = 3,
-      line = -4,
-      at = 99.5,
-      cex = 0.5)
+  text = paste("p-value = ", format(ph2, digits = 3)),
+  side = 3,
+  line = -4,
+  at = 99.5,
+  cex = 0.5)
 par(mar = c(3,3.5,2,2),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1531,22 +1555,28 @@ ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
 # ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[4] * 10e3) / 10e3))),
-      text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[4] * 10e3) / 10e3))),
-      side = 3,
-      line = -1,
-      at = 99.5,
-      cex = 0.5)
+  text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[4] * 10e3) / 10e3))),
+  side = 3,
+  line = -1,
+  at = 99.5,
+  cex = 0.5)
 mtext(text = bquote(rho == .(trunc(datx$ANI[4] * 10e2) / 10e2)),
       side = 3,
       line = -2,
       at = 99.5,
       cex = 0.5)
+# mtext(# bquote(paste("p-value = ", .(ph2))),
+#   text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
+#   side = 3,
+#   line = -3,
+#   at = 99.5,
+#   cex = 0.5)
 mtext(# bquote(paste("p-value = ", .(ph2))),
-      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
-      side = 3,
-      line = -3,
-      at = 99.5,
-      cex = 0.5)
+  text = paste("p-value = ", format(ph2, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.5,
+  cex = 0.5)
 par(mar = c(4,3.5,1,2),
     mgp = c(2.25, 1, 0))
 plot(x = dat5$ANI,
@@ -1561,23 +1591,28 @@ ph2 <- summary(ph1)$coefficients[2L, "Pr(>|t|)"]
 # ph2 <- trunc(summary(ph1)$coefficients[2L, "Pr(>|t|)"] * 1e3) / 1e3
 abline(ph1)
 mtext(# text = substitute(paste("R^2 = ", X), list("X" = (trunc(dat4$ANI[6] * 10e2) / 10e2))),
-      text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[6] * 10e2) / 10e2))),
-      side = 3,
-      line = -1,
-      at = 99.6,
-      cex = 0.5)
+  text = bquote(paste(" ",R^2 , "= ", .(trunc(dat4$ANI[6] * 10e2) / 10e2))),
+  side = 3,
+  line = -1,
+  at = 99.6,
+  cex = 0.5)
 mtext(text = bquote(rho == .(trunc(datx$ANI[6] * 10e2) / 10e2)),
       side = 3,
       line = -2,
       at = 99.6,
       cex = 0.5)
+# mtext(# bquote(paste("p-value = ", .(ph2))),
+#   text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
+#   side = 3,
+#   line = -3,
+#   at = 99.6,
+#   cex = 0.5)
 mtext(# bquote(paste("p-value = ", .(ph2))),
-      text = paste("p-value = ", format(ph2, scientific = TRUE, digits = 3)),
-      side = 3,
-      line = -3,
-      at = 99.6,
-      cex = 0.5)
-
+  text = paste("p-value = ", format(ph2, digits = 3)),
+  side = 3,
+  line = -3,
+  at = 99.6,
+  cex = 0.5)
 ```
 
 # Figure S6: Average Nucleotide Identity (ANI) correlations with assembly measures
