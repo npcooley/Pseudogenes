@@ -22,6 +22,7 @@ This github repo contains data and scripts necessary to recreate the plots prese
 * [10.5281/zenodo.8356318](https://zenodo.org/record/8356318) - Summary data that is too large for github, but necessary to knit this README and it's associated figures, enumerated in the `.gitignore` file for this repo.
 * [10.5281/zenodo.8366931](https://zenodo.org/record/8366931) - Assemblies generated for Figure 4 in this repo.
 * [10.5281/zenodo.8378433](https://zenodo.org/record/8378433) - Annotations and parsed data for Figure 4 in this repo, as well as assemblies annotations and parsed data for Figure 5 in this repo.
+* [10.5281/zenodo.10621232](https://zenodo.org/records/10621233) - Assemblies, annotations and comparison data used in the generation of figure 6.
 
 Pseudogenizations due to internal stops or frameshifts can represent one of at least three separate phenomena in assembled genomes, 1) recent evolutionary changes that can serve as an observational marker of how pressure is affecting functions and tools within a genome, 2) an error introduced into an assembly via error modes inherent to the sequencing platform or the assembly process, or 3) an inaccurate annotation of a programmed frameshift or non-canonical amino acid inclusion in lieu of a stop codon. Without confirmation such as Sanger sequencing, it can be unclear which of these options any individual pseudogene actually represents. The wide variety of platform and assembler choices available to data submitters additionally introduces the possibility for stochasticity in the rates at which pseudogenes are `TRUE` or `FALSE` depending on the combination of choices made in data collection and generation.
 
@@ -39,6 +40,7 @@ suppressMessages(library(magick))
 suppressMessages(library(pdftools))
 suppressMessages(library(VennDiagram))
 suppressMessages(library(igraph))
+suppressMessages(library(plotrix))
 # suppressMessages(library(kableExtra))
 
 # Sasha's distinct colors, hexcodes,
@@ -1464,6 +1466,410 @@ cat(paste("\n",
 
 ```
 
+### Figure 6:
+
+```{r reviewer-request01, include = TRUE, echo = FALSE}
+#| dev = c('png', 'pdf'), fig.width = 7, fig.height = 7, fig.align = "center",
+#| fig.cap = "Assemblies generated from subsamples of available real reads on the SRA show increases in pseudogenization as subsamples become more sparse"
+
+load("InputData/ReviewerRequest01Result_v01.RData",
+     verbose = FALSE)
+
+u_meta_1 <- unique(model_meta$SR_Model)
+u_meta_2 <- unique(model_meta$LR_Model)
+
+# set the bins:
+s1 <- sort(table(model_meta$Name[model_meta$LR_Cov != "50" &
+                                   model_meta$LR_Cov != "80" &
+                                   model_meta$SR_Cov_010_Reps >= 1 &
+                                   model_meta$SR_Cov_025_Reps >= 1 &
+                                   model_meta$SR_Cov_050_Reps >= 1 &
+                                   model_meta$SR_Cov_100_Reps >= 1 &
+                                   model_meta$SR_Cov_250_Reps >= 1 &
+                                   model_meta$SR_Cov_500_Reps >= 1]),
+           decreasing = TRUE)
+s2 <- list(names(s1)[1],
+           names(s1)[2],
+           names(s1)[3],
+           names(s1)[4],
+           names(s1)[5],
+           names(s1)[6],
+           names(s1)[7],
+           names(s1)[8],
+           names(s1)[9],
+           names(s1)[10:length(s1)])
+labs01 <- paste0(c("C. jejuni",
+                  "L. monocytogenes",
+                  "S. aureus",
+                  "C. coli",
+                  "E. faecium",
+                  "E. coli",
+                  "H. pylori",
+                  "T. pallidum",
+                  "M. bovis",
+                  "Other"),
+                ", n = ",
+                c(unname(s1)[1:9],
+                  sum(s1[10:length(s1)])))
+
+layout(mat = matrix(data = 1:4,
+                    byrow = TRUE,
+                    ncol = 2))
+
+###### -- top left ------------------------------------------------------------
+# column title
+# y-axis label
+par(mar = c(2.5,3,1.5,0.75),
+    mgp = c(1.85, 0.65, 0),
+    cex.lab = 0.8,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlim = c(0.25, 10.75),
+     ylim = c(0, 10),
+     xlab = "",
+     # ylab = "Additional PGs per Mbp @ 50x Cov.",
+     ylab = expression("|"*Delta*" pseudogenes| per Mbp at 50-fold coverage"),
+     xaxs = "i",
+     yaxs = "i",
+     xaxt = "n",
+     main = "Frameshifts")
+axis(side = 1,
+     at = seq(length(labs01)),
+     labels = NA)
+L <- legend(x = 0.5,
+            y = 8.25,
+            legend = rep(NA, 7 * 5),
+            # legend = u_meta_1,
+            col = rep(ColVec1[1:7], 5),
+            pch = rep(1:5, each = 7),
+            ncol = 5,
+            bty = 'n',
+            x.intersp = 0.65,
+            inset = 0.02,
+            cex = 0.75)
+legend(x = L$rect$left + L$rect$w - 0.45,
+       y = L$rect$top,
+       # legend = u_meta_1, # can drop 'Illumina' from names -- it's redundant
+       legend = c("HiSeq 2500",
+                  "HiSeq 2000",
+                  "NovaSeq 6000",
+                  "MiSeq",
+                  "HiSeq 4000",
+                  "NextSeq 500",
+                  "HiSeq X Ten"),
+       ncol = 1,
+       x.intersp = 0.65,
+       bg = NA,
+       bty = "n",
+       cex = 0.75)
+# x-pos of first column = 0.75
+text(x = 0.75 + (0.55 * 0:4),
+     y = rep(8.2, 5),
+     srt = 45,
+     labels = c("Illumina Only",
+                "+ PacBio RS",
+                "+ MinION",
+                "+ GridION",
+                "+ PromethION"),
+     cex = 0.7,
+     xpd = TRUE,
+     adj = 0)
+
+
+for (m1 in seq_along(labs01)) {
+  # text(labels = bquote(italic(.(labs01[m1]))),
+  #      xpd = TRUE,
+  #      x = m1 - 0.1,
+  #      y = -.6,
+  #      srt = -45,
+  #      adj = 0)
+  w1 <- which(model_meta$Name %in% s2[[m1]] &
+                model_meta$LR_Cov != "50" &
+                model_meta$LR_Cov != "80" &
+                model_meta$SR_Cov_010_Reps >= 1 &
+                model_meta$SR_Cov_025_Reps >= 1 &
+                model_meta$SR_Cov_050_Reps >= 1 &
+                model_meta$SR_Cov_100_Reps >= 1 &
+                model_meta$SR_Cov_250_Reps >= 1 &
+                model_meta$SR_Cov_500_Reps >= 1)
+  val1 <- match(x = model_meta$SR_Model[w1],
+                table = u_meta_1)
+  val2 <- match(x = model_meta$LR_Model[w1],
+                table = u_meta_2)
+  
+  jitterpoints <- rnorm(n = length(w1),
+                        mean = m1,
+                        sd = 0.10)
+  if (any(jitterpoints >= m1 + .2)) {
+    jitterpoints[jitterpoints >= m1 + .2] <- m1
+  }
+  if (any(jitterpoints <= m1 - .2)) {
+    jitterpoints[jitterpoints <= m1 - .2] <- m1
+  }
+  points(y = sapply(X = resp_fs[w1],
+                    FUN = function(x) {
+                      x[101] # 50 fold cov
+                    }),
+         x = jitterpoints,
+         col = ColVec1[val1],
+         pch = val2)
+}
+
+###### -- top right -----------------------------------------------------------
+# column title only
+par(mar = c(2.5,3,1.5,0.75),
+    mgp = c(1.85, 0.65, 0),
+    cex.lab = 0.8,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlim = c(0.25, 10.75),
+     ylim = c(0, 10),
+     xlab = "",
+     ylab = "",
+     xaxs = "i",
+     yaxs = "i",
+     xaxt = "n",
+     main = "Internal Stops")
+axis(side = 1,
+     at = seq(length(labs01)),
+     labels = NA)
+for (m1 in seq_along(labs01)) {
+  # text(labels = bquote(italic(.(labs01[m1]))),
+  #      xpd = TRUE,
+  #      x = m1 - 0.1,
+  #      y = -.6,
+  #      srt = -45,
+  #      adj = 0)
+  w1 <- which(model_meta$Name %in% s2[[m1]] &
+                model_meta$LR_Cov != "50" &
+                model_meta$LR_Cov != "80" &
+                model_meta$SR_Cov_010_Reps >= 1 &
+                model_meta$SR_Cov_025_Reps >= 1 &
+                model_meta$SR_Cov_050_Reps >= 1 &
+                model_meta$SR_Cov_100_Reps >= 1 &
+                model_meta$SR_Cov_250_Reps >= 1 &
+                model_meta$SR_Cov_500_Reps >= 1)
+  val1 <- match(x = model_meta$SR_Model[w1],
+                table = u_meta_1)
+  val2 <- match(x = model_meta$LR_Model[w1],
+                table = u_meta_2)
+  
+  jitterpoints <- rnorm(n = length(w1),
+                        mean = m1,
+                        sd = 0.10)
+  if (any(jitterpoints >= m1 + .2)) {
+    jitterpoints[jitterpoints >= m1 + .2] <- m1
+  }
+  if (any(jitterpoints <= m1 - .2)) {
+    jitterpoints[jitterpoints <= m1 - .2] <- m1
+  }
+  
+  points(y = sapply(X = resp_is[w1],
+                    FUN = function(x) {
+                      x[101] # 50 fold cov
+                    }),
+         x = jitterpoints,
+         col = ColVec1[val1],
+         pch = val2)
+}
+
+###### -- bottom left ---------------------------------------------------------
+# y-axis label
+# x-axis labels
+par(mar = c(8,3,0,0.75),
+    mgp = c(1.85, 0.65, 0),
+    cex.lab = 0.8,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlim = c(0.25, 10.75),
+     ylim = c(0, 500),
+     xlab = "",
+     # ylab = "Coverage for one pseudogene difference per Mbp",
+     ylab = expression("Coverage for |1 "*Delta*" pseudogene| per Mbp"),
+     xaxs = "i",
+     yaxs = "i",
+     xaxt = "n",
+     yaxt = "n")
+axis(side = 1,
+     at = seq(length(labs01)),
+     labels = NA)
+axis(side = 2,
+     at = c(seq(from = 0,
+                to = 400,
+                by = 100),
+            490),
+     labels = NA,
+     tick = TRUE)
+axis(side = 2,
+     at = seq(from = 0,
+              to = 500,
+              by = 100),
+     tick = FALSE,
+     labels = c("0",
+                "100",
+                "200",
+                "300",
+                "400",
+                "> 400"))
+axis.break(axis = 2,
+           breakpos = 450)
+for (m1 in seq_along(labs01)) {
+  text(labels = bquote(italic(.(labs01[m1]))),
+       xpd = TRUE,
+       x = m1 - 0.3,
+       y = -25,
+       srt = -60,
+       adj = 0,
+       cex = 0.8)
+  w1 <- which(model_meta$Name %in% s2[[m1]] &
+                model_meta$LR_Cov != "50" &
+                model_meta$LR_Cov != "80" &
+                model_meta$SR_Cov_010_Reps >= 1 &
+                model_meta$SR_Cov_025_Reps >= 1 &
+                model_meta$SR_Cov_050_Reps >= 1 &
+                model_meta$SR_Cov_100_Reps >= 1 &
+                model_meta$SR_Cov_250_Reps >= 1 &
+                model_meta$SR_Cov_500_Reps >= 1)
+  val1 <- match(x = model_meta$SR_Model[w1],
+                table = u_meta_1)
+  val2 <- match(x = model_meta$LR_Model[w1],
+                table = u_meta_2)
+  
+  jitterpoints <- rnorm(n = length(w1),
+                        mean = m1,
+                        sd = 0.10)
+  if (any(jitterpoints >= m1 + .2)) {
+    jitterpoints[jitterpoints >= m1 + .2] <- m1
+  }
+  if (any(jitterpoints <= m1 - .2)) {
+    jitterpoints[jitterpoints <= m1 - .2] <- m1
+  }
+  
+  transf_y_vals <- sapply(X = resp_fs[w1],
+                          FUN = function(x) {
+                            # some of these fits behave in weird ways, this is within
+                            # expectation from the simulated data, but was mostly observed
+                            # there with miseq, and more dramatically with MEGAHIT
+                            # than with Unicycler
+                            convertCoverage(cov = cov_set[which.min(abs(x - 1))])
+                          })
+  transf_y_vals[transf_y_vals > 400] <- 490
+  points(y = transf_y_vals,
+         x = jitterpoints,
+         col = ColVec1[val1],
+         pch = val2)
+  
+}
+
+###### -- bottom right --------------------------------------------------------
+# x axis labels only
+par(mar = c(8,3,0,0.75),
+    mgp = c(1.85, 0.65, 0),
+    cex.lab = 0.8,
+    cex.axis = 1,
+    cex.main = 1,
+    cex.sub = 1,
+    bg = "white")
+plot(x = 0,
+     y = 0,
+     type = "n",
+     xlim = c(0.25, 10.75),
+     ylim = c(0, 500),
+     xlab = "",
+     ylab = "",
+     xaxs = "i",
+     yaxs = "i",
+     xaxt = "n",
+     yaxt = "n")
+axis(side = 1,
+     at = seq(length(labs01)),
+     labels = NA)
+axis(side = 2,
+     at = c(seq(from = 0,
+                to = 400,
+                by = 100),
+            490),
+     labels = NA,
+     tick = TRUE)
+axis(side = 2,
+     at = seq(from = 0,
+              to = 500,
+              by = 100),
+     labels = c("0",
+                "100",
+                "200",
+                "300",
+                "400",
+                "> 400"),
+     tick = FALSE)
+axis.break(axis = 2,
+           breakpos = 450)
+for (m1 in seq_along(labs01)) {
+  text(labels = bquote(italic(.(labs01[m1]))),
+       xpd = TRUE,
+       x = m1 - 0.3,
+       y = -25,
+       srt = -60,
+       adj = 0,
+       cex = 0.8)
+  w1 <- which(model_meta$Name %in% s2[[m1]] &
+                model_meta$LR_Cov != "50" &
+                model_meta$LR_Cov != "80" &
+                model_meta$SR_Cov_010_Reps >= 1 &
+                model_meta$SR_Cov_025_Reps >= 1 &
+                model_meta$SR_Cov_050_Reps >= 1 &
+                model_meta$SR_Cov_100_Reps >= 1 &
+                model_meta$SR_Cov_250_Reps >= 1 &
+                model_meta$SR_Cov_500_Reps >= 1)
+  val1 <- match(x = model_meta$SR_Model[w1],
+                table = u_meta_1)
+  val2 <- match(x = model_meta$LR_Model[w1],
+                table = u_meta_2)
+  
+  jitterpoints <- rnorm(n = length(w1),
+                        mean = m1,
+                        sd = 0.10)
+  if (any(jitterpoints >= m1 + .2)) {
+    jitterpoints[jitterpoints >= m1 + .2] <- m1
+  }
+  if (any(jitterpoints <= m1 - .2)) {
+    jitterpoints[jitterpoints <= m1 - .2] <- m1
+  }
+  
+  transf_y_vals <- sapply(X = resp_is[w1],
+                          FUN = function(x) {
+                            # some of these fits behave in weird ways, this is within
+                            # expectation from the simulated data, but was mostly observed
+                            # there with miseq, and more dramatically with MEGAHIT
+                            # than with Unicycler
+                            convertCoverage(cov = cov_set[which.min(abs(x - 1))])
+                          })
+  transf_y_vals[transf_y_vals > 400] <- 490
+  
+  points(y = transf_y_vals,
+         x = jitterpoints,
+         col = ColVec1[val1],
+         pch = val2)
+  
+}
+```
 
 ```{r, include = TRUE}
 # ls()

@@ -3,7 +3,7 @@ are bonafide genes
 ================
 Nicholas P. Cooley, Department of Biomedical Informatics, University of
 Pittsburgh
-2023-10-06
+2024-01-25
 
 # Pseudogenes!
 
@@ -152,14 +152,26 @@ model pseudogenes as an outcome for coverage (quality not shown)
     # 
     #  0.989657046482021 percent of unique SRA biosamples have associated Illumina reads
 
+### Figure 6:
+
+<div class="figure" style="text-align: center">
+
+<img src="README_files/figure-gfm/reviewer-request01-1.png" alt="Assemblies generated from subsamples of available real reads on the SRA show increases in pseudogenization as subsamples become more sparse"  />
+<p class="caption">
+Assemblies generated from subsamples of available real reads on the SRA
+show increases in pseudogenization as subsamples become more sparse
+</p>
+
+</div>
+
 ``` r
 # ls()
 sessionInfo()
 ```
 
-    # R version 4.3.0 (2023-04-21)
+    # R version 4.3.1 (2023-06-16)
     # Platform: x86_64-apple-darwin20 (64-bit)
-    # Running under: macOS Monterey 12.4
+    # Running under: macOS Sonoma 14.1.2
     # 
     # Matrix products: default
     # BLAS:   /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRblas.0.dylib 
@@ -176,21 +188,22 @@ sessionInfo()
     #  [8] datasets  methods   base     
     # 
     # other attached packages:
-    #  [1] igraph_1.4.2        VennDiagram_1.7.3   futile.logger_1.4.3
-    #  [4] pdftools_3.3.3      magick_2.7.4        SynExtend_1.12.0   
-    #  [7] DECIPHER_2.28.0     RSQLite_2.3.1       Biostrings_2.68.0  
-    # [10] GenomeInfoDb_1.36.0 XVector_0.40.0      IRanges_2.34.0     
-    # [13] S4Vectors_0.38.1    BiocGenerics_0.46.0 knitr_1.42         
+    #  [1] plotrix_3.8-4       igraph_1.5.1        VennDiagram_1.7.3  
+    #  [4] futile.logger_1.4.3 pdftools_3.4.0      magick_2.8.1       
+    #  [7] SynExtend_1.14.0    DECIPHER_2.30.0     RSQLite_2.3.2      
+    # [10] Biostrings_2.70.1   GenomeInfoDb_1.38.0 XVector_0.42.0     
+    # [13] IRanges_2.36.0      S4Vectors_0.40.1    BiocGenerics_0.48.0
+    # [16] knitr_1.45         
     # 
     # loaded via a namespace (and not attached):
-    #  [1] bit_4.0.5               highr_0.10              compiler_4.3.0         
-    #  [4] qpdf_1.3.2              crayon_1.5.2            Rcpp_1.0.10            
+    #  [1] bit_4.0.5               highr_0.10              compiler_4.3.1         
+    #  [4] qpdf_1.3.2              crayon_1.5.2            Rcpp_1.0.11            
     #  [7] blob_1.2.4              bitops_1.0-7            yaml_2.3.7             
-    # [10] fastmap_1.1.1           GenomeInfoDbData_1.2.10 DBI_1.1.3              
-    # [13] rlang_1.1.1             cachem_1.0.8            xfun_0.39              
+    # [10] fastmap_1.1.1           GenomeInfoDbData_1.2.11 DBI_1.1.3              
+    # [13] rlang_1.1.1             cachem_1.0.8            xfun_0.40              
     # [16] bit64_4.0.5             memoise_2.0.1           cli_3.6.1              
     # [19] formatR_1.14            magrittr_2.0.3          futile.options_1.0.1   
-    # [22] zlibbioc_1.46.0         digest_0.6.31           rstudioapi_0.14        
-    # [25] askpass_1.1             vctrs_0.6.2             evaluate_0.21          
-    # [28] lambda.r_1.2.4          RCurl_1.98-1.12         rmarkdown_2.21         
-    # [31] pkgconfig_2.0.3         tools_4.3.0             htmltools_0.5.5
+    # [22] zlibbioc_1.48.0         digest_0.6.33           rstudioapi_0.15.0      
+    # [25] askpass_1.2.0           vctrs_0.6.4             evaluate_0.22          
+    # [28] lambda.r_1.2.4          RCurl_1.98-1.12         rmarkdown_2.25         
+    # [31] pkgconfig_2.0.3         tools_4.3.1             htmltools_0.5.6.1

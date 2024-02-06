@@ -1,0 +1,10 @@
+3503 ResultC0012716.fna.gz anno012716.gff.gz ResultC0012416.fna.gz anno012416.gff.gz
+NA NA NA NA NA
+4728 ResultC0015149.fna.gz anno015149.gff.gz ResultC0015449.fna.gz anno015449.gff.gz
+7180 ResultC0023704.fna.gz anno023704.gff.gz ResultC0023304.fna.gz anno023304.gff.gz
+5789 ResultC0018093.fna.gz anno018093.gff.gz ResultC0017668.fna.gz anno017668.gff.gz
+NA NA NA NA NA
+NA NA NA NA NA
+1262 ResultC0003184.fna.gz anno003184.gff.gz ResultC0002984.fna.gz anno002984.gff.gz
+3635 ResultC0012731.fna.gz anno012731.gff.gz ResultC0013131.fna.gz anno013131.gff.gz
+NA NA NA NA NA
