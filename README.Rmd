@@ -23,10 +23,12 @@ This github repo contains data and scripts necessary to recreate the plots prese
 * [10.5281/zenodo.8366931](https://zenodo.org/record/8366931) - Assemblies generated for Figure 4 in this repo.
 * [10.5281/zenodo.8378433](https://zenodo.org/record/8378433) - Annotations and parsed data for Figure 4 in this repo, as well as assemblies annotations and parsed data for Figure 5 in this repo.
 * [10.5281/zenodo.10621232](https://zenodo.org/records/10621233) - Assemblies, annotations and comparison data used in the generation of figure 6.
+* [10.5281/zenodo.10622275](https://zenodo.org/records/10622276) - Assemblies and raw assembly data, part 1.
+* [10.5281/zenodo.10625339](https://zenodo.org/records/10625340) - Assemblies and raw assembly data, part 2.
 
 Pseudogenizations due to internal stops or frameshifts can represent one of at least three separate phenomena in assembled genomes, 1) recent evolutionary changes that can serve as an observational marker of how pressure is affecting functions and tools within a genome, 2) an error introduced into an assembly via error modes inherent to the sequencing platform or the assembly process, or 3) an inaccurate annotation of a programmed frameshift or non-canonical amino acid inclusion in lieu of a stop codon. Without confirmation such as Sanger sequencing, it can be unclear which of these options any individual pseudogene actually represents. The wide variety of platform and assembler choices available to data submitters additionally introduces the possibility for stochasticity in the rates at which pseudogenes are `TRUE` or `FALSE` depending on the combination of choices made in data collection and generation.
 
-It would take an enormous effort to wholesale sanger sequence even a modest number of the pseudogenes present in RefSeq or Genbank. It is not even clear that that type of experiment is necessary. However, some interrogations of the diverse data present in RefSeq, GenBank, and the SRA are possible, and potentially useful. Metadata can be scraped from the SRA and we can generate direct observations of how relative counts of pseudogenes are related to extractable pieces of data, such as reported assembler, platforms (sequencing technology) for available SRA runs, submission year, reported assembly status, contig N50 over total length, and genus. These direct observations can be coupled with causal inference via Tetrad to predict causal links between metadata categories and relative pseudogene counts.
+It would take an enormous effort to wholesale Sanger sequence even a modest number of the pseudogenes present in RefSeq or Genbank. It is not even clear that that type of experiment is necessary. However, some interrogations of the diverse data present in RefSeq, GenBank, and the SRA are possible and potentially useful. Metadata can be scraped from the SRA and we can generate direct observations of how relative counts of pseudogenes are related to extractable pieces of data, such as reported assembler, platforms (sequencing technology) for available SRA runs, submission year, reported assembly status, contig N50 over total length, and genus. These direct observations can be coupled with causal inference via Tetrad to predict causal links between metadata categories and relative pseudogene counts.
 
 We can additionally reassemble available reads under a variety of conditions, and assemble reads simulated under varying coverages and qualities to interrogate factors that can affect the pseudogene content of finished assemblies.
 
@@ -302,6 +304,8 @@ color.bar <- function(lut,
 ```
 
 ### Figure 1:
+
+A reasonable *a priori* expectation is that two assemblies that represent only very recently diverged genomes should contain very similar numbers of pseudogenes. We can plot reported count differences between pseudogenes by type against ANI and show that there are cases of very closely related genomes with considerably different pseudogene repertoires by count.
 
 ```{r pg-incongruency, include = TRUE, echo = FALSE}
 #| dev = c('png', 'pdf'), fig.width = 3.5, fig.height = 7, fig.align = "center",
@@ -629,7 +633,56 @@ cat(paste("\nframeshift spline fit at 100 ==", val_fit1, "\n",
           "internal stop split fit at 100 ==", val_fit2))
 ```
 
+We can calculate the number of very close pairs (pairs with an ANI >= 99.9), where the rates of pseudogenization imply that one partner has more pseudogenes than expected. The code snippet below shows how this can be accomplished for both internal stops and frameshifts.
+
+```{r rejection-rates, include = TRUE, echo = TRUE}
+# from the data file: InputData/Counts_Orthos_v02.RData
+
+# match up the total coding counts to the pair partners
+mat1 <- match(x = dat3$id1,
+              table = as.integer(rownames(adjusted_counts)))
+mat2 <- match(x = dat3$id2,
+              table = as.integer(rownames(adjusted_counts)))
+
+dat3$features1 <- adjusted_counts$all_coding[mat1]
+dat3$features2 <- adjusted_counts$all_coding[mat2]
+
+size <- ifelse(test = dat3$is1 > dat3$is2,
+               yes = dat3$features1,
+               no = dat3$features2) # features in assembly with more IS
+rate <- ifelse(test = dat3$is1 < dat3$is2,
+               yes = dat3$is1/dat3$features1,
+               no = dat3$is2/dat3$features2) # rate of IS in assembly with fewer IS
+num <- ifelse(test = dat3$is1 > dat3$is2,
+              yes = dat3$is1,
+              no = dat3$is2) # number of IS in assembly with more IS
+
+reject <- num > qbinom(0.99, size, rate)
+# sum(dat3$ANI >= 99.9)
+cat("Rejections by Internal Stops == ")
+mean(reject[dat3$ANI >= 99.9])
+
+
+size <- ifelse(test = dat3$fs1 > dat3$fs2,
+               yes = dat3$features1,
+               no = dat3$features2) # features in assembly with more FS
+rate <- ifelse(test = dat3$fs1 < dat3$fs2,
+               yes = dat3$fs1/dat3$features1,
+               no = dat3$fs2/dat3$features2) # rate of FS in assembly with fewer FS
+num <- ifelse(test = dat3$fs1 > dat3$fs2,
+              yes = dat3$fs1,
+              no = dat3$fs2) # number of FS in assembly with more FS
+
+reject <- num > qbinom(0.99, size, rate)
+# sum(dat3$ANI >= 99.9)
+cat("Rejections by Frameshifts == ")
+mean(reject[dat3$ANI >= 99.9])
+```
+
+
 ### Figure 2:
+
+The incomplete nature of the metadata available in public repositories makes direct modeling from that metadata unwise. Causal inference can be applied to that data however, and we can plot out how distributions of relative pseudogene counts by label groups appear to be dissimilar.
 
 ```{r inference-and-observation, include = TRUE, echo = FALSE}
 #| dev = c('png', 'pdf'), fig.width = 7, fig.height = 7, fig.align = "center",
@@ -885,6 +938,8 @@ kable(df)
 
 ### Figure 3:
 
+Reassembly of reads on the SRA from within a single genus using different assemblers shows unique distributions as assembler is varied.
+
 ```{r influence-of-assembler, include = TRUE, echo = FALSE}
 #| dev = c('png', 'pdf'), fig.width = 7, fig.height = 7, fig.align = "center",
 #| fig.cap = "Within a species, different assemblers provide unique distributions of pseudogenes"
@@ -1001,6 +1056,8 @@ AdHocVenn(InputList = ISVenn,
 ```
 
 ### Figure 4:
+
+In cases where multiple sequencing runs are deposited on the SRA for a given biosample, those reads can be individually reassembled and their relative pseudogene counts compared. This requires some fairly stringent metadata filtering during data selection and after assembly which are enumerated in the manuscript. Those steps are taken to ensure that the two generated assemblies actually represent the same information.
 
 ```{r matched-sra-run-deviation, include = TRUE, echo = FALSE}
 #| dev = c('png', 'pdf'), fig.width = 7, fig.height = 3.5, fig.align = "center",
@@ -1148,6 +1205,8 @@ abline(v = 0,
 ```
 
 ### Figure 5:
+
+Reads can be simulated under a variety of conditions and the resulting assemblies can be used to generate models for pseudogenization rates under those conditions. Further visualizations of this data are present in the supporting information.
 
 ```{r predicted-behavior, include = TRUE, echo = FALSE}
 #| dev = c('png', 'pdf'), fig.width = 3.5, fig.height = 7, fig.align = "center",
@@ -1468,12 +1527,40 @@ cat(paste("\n",
 
 ### Figure 6:
 
+Reassembly of reads on the SRA that imply extremely deep sequencing coverage under stepwise subsampling can be used to mimic the data generated for simulated reads.
+
 ```{r reviewer-request01, include = TRUE, echo = FALSE}
 #| dev = c('png', 'pdf'), fig.width = 7, fig.height = 7, fig.align = "center",
 #| fig.cap = "Assemblies generated from subsamples of available real reads on the SRA show increases in pseudogenization as subsamples become more sparse"
 
 load("InputData/ReviewerRequest01Result_v01.RData",
      verbose = FALSE)
+
+# simulated points to add to the plot...
+sim_is_resp <- sim_fs_resp <- matrix(data = list(),
+                                     nrow = 3,
+                                     ncol = 3)
+sim_plat_1 <- c("Illumina HiSeq 2500",
+                "HiSeq X Ten",
+                "Illumina MiSeq")
+sim_plat_2 <- c("x",
+                "MinION",
+                "PacBio RS")
+for (m1 in seq_len(nrow(is_vals05) / 2L)) {
+  for (m2 in seq_len(ncol(is_vals05) / 3L)) {
+    sim_is_resp[[m1, m2]] <- predictResponse(coef = is_vals05[m1 + 3L, c(m2, m2 + 3L, m2 + 6L)],
+                                             COV = cov_set,
+                                             QUAL = 0,
+                                             TOT_GENE = tot_genes,
+                                             TOT_NT = tot_nts)
+    sim_fs_resp[[m1, m2]] <- predictResponse(coef = fs_vals05[m1 + 3L, c(m2, m2 + 3L, m2 + 6L)],
+                                             COV = cov_set,
+                                             QUAL = 0,
+                                             TOT_GENE = tot_genes,
+                                             TOT_NT = tot_nts)
+  }
+}
+
 
 u_meta_1 <- unique(model_meta$SR_Model)
 u_meta_2 <- unique(model_meta$LR_Model)
@@ -1496,25 +1583,26 @@ s2 <- list(names(s1)[1],
            names(s1)[6],
            names(s1)[7],
            names(s1)[8],
-           names(s1)[9],
-           names(s1)[10:length(s1)])
-labs01 <- paste0(c("C. jejuni",
-                  "L. monocytogenes",
-                  "S. aureus",
-                  "C. coli",
-                  "E. faecium",
-                  "E. coli",
-                  "H. pylori",
-                  "T. pallidum",
-                  "M. bovis",
-                  "Other"),
-                ", n = ",
-                c(unname(s1)[1:9],
-                  sum(s1[10:length(s1)])))
+           names(s1)[9:length(s1)])
+labs01 <- paste0(c("E. coli (Simulated)",
+                   "C. jejuni",
+                   "L. monocytogenes",
+                   "S. aureus",
+                   "C. coli",
+                   "E. faecium",
+                   "E. coli",
+                   "H. pylori",
+                   "T. pallidum",
+                   "Other"),
+                 ", n = ",
+                 c(9,
+                   unname(s1)[1:8],
+                   sum(s1[9:length(s1)])))
 
 layout(mat = matrix(data = 1:4,
                     byrow = TRUE,
                     ncol = 2))
+
 
 ###### -- top left ------------------------------------------------------------
 # column title
@@ -1581,8 +1669,20 @@ text(x = 0.75 + (0.55 * 0:4),
      xpd = TRUE,
      adj = 0)
 
+for (m1 in seq_len(nrow(is_vals05) / 2L)) {
+  for (m2 in seq_len(ncol(is_vals05) / 3L)) {
+    ph_val <- sim_fs_resp[[m1, m2]][101]
+    points(x = 1,
+           y = ph_val,
+           col = ColVec1[match(x = sim_plat_1[m1],
+                               table = u_meta_1)],
+           pch = match(x = sim_plat_2[m2],
+                       table = u_meta_2))
+    # print(ph_val)
+  }
+}
 
-for (m1 in seq_along(labs01)) {
+for (m1 in seq_len(length(labs01) - 1L)) {
   # text(labels = bquote(italic(.(labs01[m1]))),
   #      xpd = TRUE,
   #      x = m1 - 0.1,
@@ -1602,15 +1702,15 @@ for (m1 in seq_along(labs01)) {
                 table = u_meta_1)
   val2 <- match(x = model_meta$LR_Model[w1],
                 table = u_meta_2)
-  
+  mx <- m1 + 1L
   jitterpoints <- rnorm(n = length(w1),
-                        mean = m1,
+                        mean = mx,
                         sd = 0.10)
-  if (any(jitterpoints >= m1 + .2)) {
-    jitterpoints[jitterpoints >= m1 + .2] <- m1
+  if (any(jitterpoints >= mx + .2)) {
+    jitterpoints[jitterpoints >= mx + .2] <- mx
   }
-  if (any(jitterpoints <= m1 - .2)) {
-    jitterpoints[jitterpoints <= m1 - .2] <- m1
+  if (any(jitterpoints <= mx - .2)) {
+    jitterpoints[jitterpoints <= mx - .2] <- mx
   }
   points(y = sapply(X = resp_fs[w1],
                     FUN = function(x) {
@@ -1645,7 +1745,21 @@ plot(x = 0,
 axis(side = 1,
      at = seq(length(labs01)),
      labels = NA)
-for (m1 in seq_along(labs01)) {
+
+for (m1 in seq_len(nrow(is_vals05) / 2L)) {
+  for (m2 in seq_len(ncol(is_vals05) / 3L)) {
+    ph_val <- sim_is_resp[[m1, m2]][101]
+    points(x = 1,
+           y = ph_val,
+           col = ColVec1[match(x = sim_plat_1[m1],
+                               table = u_meta_1)],
+           pch = match(x = sim_plat_2[m2],
+                       table = u_meta_2))
+    # print(ph_val)
+  }
+}
+
+for (m1 in seq_len(length(labs01) - 1L)) {
   # text(labels = bquote(italic(.(labs01[m1]))),
   #      xpd = TRUE,
   #      x = m1 - 0.1,
@@ -1666,14 +1780,15 @@ for (m1 in seq_along(labs01)) {
   val2 <- match(x = model_meta$LR_Model[w1],
                 table = u_meta_2)
   
+  mx <- m1 + 1L
   jitterpoints <- rnorm(n = length(w1),
-                        mean = m1,
+                        mean = mx,
                         sd = 0.10)
-  if (any(jitterpoints >= m1 + .2)) {
-    jitterpoints[jitterpoints >= m1 + .2] <- m1
+  if (any(jitterpoints >= mx + .2)) {
+    jitterpoints[jitterpoints >= mx + .2] <- mx
   }
-  if (any(jitterpoints <= m1 - .2)) {
-    jitterpoints[jitterpoints <= m1 - .2] <- m1
+  if (any(jitterpoints <= mx - .2)) {
+    jitterpoints[jitterpoints <= mx - .2] <- mx
   }
   
   points(y = sapply(X = resp_is[w1],
@@ -1730,6 +1845,20 @@ axis(side = 2,
                 "> 400"))
 axis.break(axis = 2,
            breakpos = 450)
+
+for (m1 in seq_len(nrow(is_vals05) / 2L)) {
+  for (m2 in seq_len(ncol(is_vals05) / 3L)) {
+    ph_val <- convertCoverage(cov = cov_set[which.min(abs(sim_fs_resp[[m1, m2]] - 1))])
+    points(x = 1,
+           y = ph_val,
+           col = ColVec1[match(x = sim_plat_1[m1],
+                               table = u_meta_1)],
+           pch = match(x = sim_plat_2[m2],
+                       table = u_meta_2))
+    # print(ph_val)
+  }
+}
+
 for (m1 in seq_along(labs01)) {
   text(labels = bquote(italic(.(labs01[m1]))),
        xpd = TRUE,
@@ -1738,6 +1867,8 @@ for (m1 in seq_along(labs01)) {
        srt = -60,
        adj = 0,
        cex = 0.8)
+}
+for (m1 in seq_len(length(labs01) - 1L)) {
   w1 <- which(model_meta$Name %in% s2[[m1]] &
                 model_meta$LR_Cov != "50" &
                 model_meta$LR_Cov != "80" &
@@ -1752,14 +1883,15 @@ for (m1 in seq_along(labs01)) {
   val2 <- match(x = model_meta$LR_Model[w1],
                 table = u_meta_2)
   
+  mx <- m1 + 1L
   jitterpoints <- rnorm(n = length(w1),
-                        mean = m1,
+                        mean = mx,
                         sd = 0.10)
-  if (any(jitterpoints >= m1 + .2)) {
-    jitterpoints[jitterpoints >= m1 + .2] <- m1
+  if (any(jitterpoints >= mx + .2)) {
+    jitterpoints[jitterpoints >= mx + .2] <- mx
   }
-  if (any(jitterpoints <= m1 - .2)) {
-    jitterpoints[jitterpoints <= m1 - .2] <- m1
+  if (any(jitterpoints <= mx - .2)) {
+    jitterpoints[jitterpoints <= mx - .2] <- mx
   }
   
   transf_y_vals <- sapply(X = resp_fs[w1],
@@ -1821,6 +1953,20 @@ axis(side = 2,
      tick = FALSE)
 axis.break(axis = 2,
            breakpos = 450)
+
+for (m1 in seq_len(nrow(is_vals05) / 2L)) {
+  for (m2 in seq_len(ncol(is_vals05) / 3L)) {
+    ph_val <- convertCoverage(cov = cov_set[which.min(abs(sim_is_resp[[m1, m2]] - 1))])
+    points(x = 1,
+           y = ph_val,
+           col = ColVec1[match(x = sim_plat_1[m1],
+                               table = u_meta_1)],
+           pch = match(x = sim_plat_2[m2],
+                       table = u_meta_2))
+    # print(ph_val)
+  }
+}
+
 for (m1 in seq_along(labs01)) {
   text(labels = bquote(italic(.(labs01[m1]))),
        xpd = TRUE,
@@ -1829,6 +1975,8 @@ for (m1 in seq_along(labs01)) {
        srt = -60,
        adj = 0,
        cex = 0.8)
+}
+for (m1 in seq_len(length(labs01) - 1L)) {
   w1 <- which(model_meta$Name %in% s2[[m1]] &
                 model_meta$LR_Cov != "50" &
                 model_meta$LR_Cov != "80" &
@@ -1843,14 +1991,15 @@ for (m1 in seq_along(labs01)) {
   val2 <- match(x = model_meta$LR_Model[w1],
                 table = u_meta_2)
   
+  mx <- m1 + 1L
   jitterpoints <- rnorm(n = length(w1),
-                        mean = m1,
+                        mean = mx,
                         sd = 0.10)
-  if (any(jitterpoints >= m1 + .2)) {
-    jitterpoints[jitterpoints >= m1 + .2] <- m1
+  if (any(jitterpoints >= mx + .2)) {
+    jitterpoints[jitterpoints >= mx + .2] <- mx
   }
-  if (any(jitterpoints <= m1 - .2)) {
-    jitterpoints[jitterpoints <= m1 - .2] <- m1
+  if (any(jitterpoints <= mx - .2)) {
+    jitterpoints[jitterpoints <= mx - .2] <- mx
   }
   
   transf_y_vals <- sapply(X = resp_is[w1],
@@ -1869,6 +2018,7 @@ for (m1 in seq_along(labs01)) {
          pch = val2)
   
 }
+
 ```
 
 ```{r, include = TRUE}
